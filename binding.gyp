@@ -24,6 +24,8 @@
         "deps/libcds-v1.0.12/src/static/permutation",
         "deps/libcds-v1.0.12/src/utils",
       ],
+      "cflags!":    [ "-fno-rtti", "-fno-exceptions" ],
+      "cflags_cc!": [ "-fno-rtti", "-fno-exceptions" ],
       "xcode_settings": {
         "GCC_ENABLE_CPP_RTTI": "YES",
         "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
