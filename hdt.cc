@@ -8,22 +8,24 @@ using namespace hdt;
 using namespace v8;
 
 // Searches for a triple pattern in an HDT file.
-// JavaScript signature: search(filename, subject, predicate, object)
+// JavaScript signature: search(filename, subject, predicate, object, callback)
 Handle<Value> Search(const Arguments& args) {
   HandleScope scope;
 
   // Retrieve arguments
-  assert(args.Length() == 4);
+  assert(args.Length() == 5);
   const String::Utf8Value  filename(args[0]);
   const String::Utf8Value   subject(args[1]);
   const String::Utf8Value predicate(args[2]);
   const String::Utf8Value    object(args[3]);
+  const Local<Function> callback = Local<Function>::Cast(args[4]);
 
   // Open the HDT file
   HDT *hdt;
   try { hdt = HDTManager::mapHDT(*filename); }
   catch (const char* error) {
-    ThrowException(Exception::TypeError(String::New(error)));
+    Handle<Value> argv[1] = { Exception::Error(String::New(error)) };
+    callback->Call(Context::GetCurrent()->Global(), 1, argv);
     return scope.Close(Undefined());
   }
 
@@ -41,7 +43,10 @@ Handle<Value> Search(const Arguments& args) {
   delete it;
   delete hdt;
 
-  return scope.Close(triples);
+  // Send the triples array to the callback
+  Handle<Value> argv[2] = { Null(), triples };
+  callback->Call(Context::GetCurrent()->Global(), 2, argv);
+  return scope.Close(Undefined());
 }
 
 // Exposes members on the main module

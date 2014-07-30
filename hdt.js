@@ -16,21 +16,21 @@ HdtDocument.prototype.search = function (subject, predicate, object, callback) {
   if (typeof callback  !== 'function') return;
 
   // Search for triples matching the given pattern
-  try {
-    var triples = hdtNative.search(this._filename, subject, predicate, object);
-    callback(null, triples);
-  }
-  // Parse a possible error message
-  catch (error) {
-    switch (error.message) {
-    case 'Error opening HDT file for mapping.':
-      return callback(new Error('Could not open HDT file "' + this._filename + '"'));
-    case 'Non-HDT Section':
-      return callback(new Error('The file "' + this._filename + '" is not a valid HDT file'));
-    default:
-      return callback(error);
+  var filename = this._filename;
+  hdtNative.search(filename, subject, predicate, object, function (error, triples) {
+    // Parse a possible error message
+    if (error) {
+      switch (error.message) {
+      case 'Error opening HDT file for mapping.':
+        return callback(new Error('Could not open HDT file "' + filename + '"'));
+      case 'Non-HDT Section':
+        return callback(new Error('The file "' + filename + '" is not a valid HDT file'));
+      default:
+        return callback(error);
+      }
     }
-  }
+    callback(null, triples);
+  });
 };
 
 module.exports = {
