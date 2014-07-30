@@ -11,8 +11,15 @@ HdtDocument::HdtDocument(const char* filename) {
 
 // Deletes the document.
 HdtDocument::~HdtDocument() {
-  delete hdt;
-  hdt = NULL;
+  Destroy();
+}
+
+// Destroys the document, disabling all further operations.
+void HdtDocument::Destroy() {
+  if (hdt) {
+    delete hdt;
+    hdt = NULL;
+  }
 }
 
 // Creates a constructor for an HdtDocument.
@@ -22,8 +29,10 @@ Persistent<Function> HdtDocument::CreateConstructor() {
   constructorTemplate->SetClassName(String::NewSymbol("HdtDocument"));
   constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
   // Create prototype
-  constructorTemplate->PrototypeTemplate()->Set(String::NewSymbol("_search"),
-                                                FunctionTemplate::New(Search)->GetFunction());
+  Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
+  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(Search)->GetFunction());
+  prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
+  prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
   return Persistent<Function>::New(constructorTemplate->GetFunction());
 }
 
@@ -72,4 +81,20 @@ Handle<Value> HdtDocument::Search(const Arguments& args) {
   Handle<Value> argv[2] = { Null(), triples };
   callback->Call(Context::GetCurrent()->Global(), 2, argv);
   return scope.Close(Undefined());
+}
+
+// Closes the document, disabling all further operations.
+// JavaScript signature: close()
+Handle<Value> HdtDocument::Close(const Arguments& args) {
+  HandleScope scope;
+  HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(args.This());
+  hdtDocument->Destroy();
+  return scope.Close(Undefined());
+}
+
+// Gets the version of the module.
+Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorInfo& info) {
+  HandleScope scope;
+  HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(info.This());
+  return scope.Close(Boolean::New(!hdtDocument->hdt));
 }

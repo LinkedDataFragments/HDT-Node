@@ -5,6 +5,7 @@ var HdtDocumentPrototype = {};
 
 // Searches the document for triples with the given subject, predicate, and object.
 HdtDocumentPrototype.search = function (subject, predicate, object, callback) {
+  if (this.closed) throw new Error('The HDT document cannot be read because it is closed');
   if (typeof   subject !== 'string') subject   = '';
   if (typeof predicate !== 'string') predicate = '';
   if (typeof    object !== 'string') object    = '';

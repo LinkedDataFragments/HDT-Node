@@ -41,7 +41,9 @@ describe('hdt', function () {
 
   describe('calling search', function () {
     describe('on an HDT document for an example HDT file', function () {
-      var document = hdt.fromFile('./test/test.hdt');
+      var document;
+      before(function () { document = hdt.fromFile('./test/test.hdt'); });
+      after(function  () { document.close(); });
 
       describe('with pattern null null null', function () {
         it('should return an array with matches', function (done) {
@@ -99,6 +101,15 @@ describe('hdt', function () {
             done(error);
           });
         });
+      });
+    });
+
+    describe('on a closed HDT document', function () {
+      var document;
+      before(function () { document = hdt.fromFile('./test/test.hdt'); document.close(); });
+      it('should throw an error', function () {
+        (function () { document.search(null, null, null, function () {}); })
+        .should.throw('The HDT document cannot be read because it is closed');
       });
     });
   });
