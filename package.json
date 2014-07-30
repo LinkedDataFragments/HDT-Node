@@ -1,10 +1,17 @@
 {
   "main": "./build/Release/hdt",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha"
+    "test": "node_modules/mocha/bin/mocha",
+    "hint": "node_modules/jshint/bin/jshint *.js test/*.js"
   },
   "devDependencies": {
     "should": "4.0.x",
-    "mocha": "1.21.x"
-  }
+    "mocha": "1.21.x",
+    "jshint": "2.1.x",
+    "precommit-hook": "1.0.x"
+  },
+  "precommit": [
+    "hint",
+    "test"
+  ]
 }
