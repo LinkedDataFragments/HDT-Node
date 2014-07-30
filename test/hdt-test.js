@@ -17,39 +17,29 @@ describe('hdt', function () {
       });
     });
 
-    describe('without a non-string argument', function () {
+    describe('with a non-string argument', function () {
       it('should throw an error', function () {
         (function () { hdt.fromFile(5); })
         .should.throw('Invalid filename: 5');
       });
     });
+
+    describe('with a non-existing file as argument', function () {
+      it('should throw an error', function () {
+        (function () { hdt.fromFile('abc'); })
+        .should.throw('Could not open HDT file "abc"');
+      });
+    });
+
+    describe('with a non-HDT file as argument', function () {
+      it('should throw an error', function () {
+        (function () { hdt.fromFile('./test/hdt-test.js'); })
+        .should.throw('The file "./test/hdt-test.js" is not a valid HDT file');
+      });
+    });
   });
 
   describe('calling search', function () {
-    describe('on an HDT document for a non-existing file', function () {
-      var document = hdt.fromFile('abc');
-
-      it('should throw an error', function (done) {
-        document.search(null, null, null, function (error) {
-          error.should.be.an.Error;
-          error.message.should.equal('Could not open HDT file "abc"');
-          done();
-        });
-      });
-    });
-
-    describe('on an HDT document for a non-HDT file', function () {
-      var document = hdt.fromFile('./test/hdt-test.js');
-
-      it('should throw an error', function (done) {
-        document.search(null, null, null, function (error) {
-          error.should.be.an.Error;
-          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
-          done();
-        });
-      });
-    });
-
     describe('on an HDT document for an example HDT file', function () {
       var document = hdt.fromFile('./test/test.hdt');
 

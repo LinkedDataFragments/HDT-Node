@@ -4,6 +4,7 @@
       "target_name": "hdt",
       "sources": [
         "hdt.cc",
+        "HdtDocument.cc",
         "<!@(ls -1 deps/hdt-lib/src/hdt/*.cpp)",
         "<!@(ls -1 deps/hdt-lib/src/bitsequence/*.cpp)",
         "<!@(ls -1 deps/hdt-lib/src/dictionary/*.cpp)",
