@@ -29,71 +29,85 @@ describe('hdt', function () {
     describe('on an HDT document for a non-existing file', function () {
       var document = hdt.fromFile('abc');
 
-      it('should throw an error', function () {
-        (function () { document.search(); })
-        .should.throw('Could not open HDT file "abc"');
+      it('should throw an error', function (done) {
+        document.search(null, null, null, function (error) {
+          error.should.be.an.Error;
+          error.message.should.equal('Could not open HDT file "abc"');
+          done();
+        });
       });
     });
 
     describe('on an HDT document for a non-HDT file', function () {
       var document = hdt.fromFile('./test/hdt-test.js');
 
-      it('should throw an error', function () {
-        (function () { document.search(); })
-        .should.throw('The file "./test/hdt-test.js" is not a valid HDT file');
+      it('should throw an error', function (done) {
+        document.search(null, null, null, function (error) {
+          error.should.be.an.Error;
+          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
+          done();
+        });
       });
     });
 
     describe('on an HDT document for an example HDT file', function () {
       var document = hdt.fromFile('./test/test.hdt');
 
-      describe('with pattern none none none', function () {
-        it('should return an array with matches', function () {
-          var triples = document.search();
-          triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
-          triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri4' });
+      describe('with pattern null null null', function () {
+        it('should return an array with matches', function (done) {
+          document.search(null, null, null, function (error, triples) {
+            triples.should.be.an.Array;
+            triples.should.have.lengthOf(10);
+            triples[0].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri4' });
+            done(error);
+          });
         });
       });
 
       describe('with pattern ex:uri3 null null', function () {
-        it('should return an array with matches', function () {
-          var triples = document.search('http://example.org/uri3', null, null);
-          triples.should.be.an.Array;
-          triples.should.have.lengthOf(2);
-          triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri4' });
-          triples[1].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri5' });
+        it('should return an array with matches', function (done) {
+          document.search('http://example.org/uri3', null, null, function (error, triples) {
+            triples.should.be.an.Array;
+            triples.should.have.lengthOf(2);
+            triples[0].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri4' });
+            triples[1].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri5' });
+            done(error);
+          });
         });
       });
 
       describe('with pattern null ex:predicate3 null', function () {
-        it('should return an array with matches', function () {
-          var triples = document.search(null, 'http://example.org/predicate3', null);
-          triples.should.be.an.Array;
-          triples.should.have.lengthOf(2);
-          triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri4' });
-          triples[1].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri5' });
+        it('should return an array with matches', function (done) {
+          document.search(null, 'http://example.org/predicate3', null, function (error, triples) {
+            triples.should.be.an.Array;
+            triples.should.have.lengthOf(2);
+            triples[0].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri4' });
+            triples[1].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri5' });
+            done(error);
+          });
         });
       });
 
       describe('with pattern null null ex:uri4', function () {
-        it('should return an array with matches', function () {
-          var triples = document.search(null, null, 'http://example.org/uri4');
-          triples.should.be.an.Array;
-          triples.should.have.lengthOf(1);
-          triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                  predicate: 'http://example.org/predicate3',
-                                  object:    'http://example.org/uri4' });
+        it('should return an array with matches', function (done) {
+          document.search(null, null, 'http://example.org/uri4', function (error, triples) {
+            triples.should.be.an.Array;
+            triples.should.have.lengthOf(1);
+            triples[0].should.eql({ subject:   'http://example.org/uri3',
+                                    predicate: 'http://example.org/predicate3',
+                                    object:    'http://example.org/uri4' });
+            done(error);
+          });
         });
       });
     });
