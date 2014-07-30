@@ -1,6 +1,6 @@
 require('should');
 
-var hdt = require('../hdt');
+var hdt = require('../lib/hdt');
 
 describe('hdt', function () {
   describe('The hdt module', function () {

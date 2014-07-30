@@ -1,8 +1,8 @@
 {
-  "main": "./build/Release/hdt",
+  "main": "./lib/hdt",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha",
-    "hint": "node_modules/jshint/bin/jshint *.js test/*.js"
+    "hint": "node_modules/jshint/bin/jshint lib/*.js test/*.js"
   },
   "devDependencies": {
     "should": "4.0.x",
