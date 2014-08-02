@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <vector>
 #include "HdtDocument.h"
 
 using namespace v8;
@@ -55,7 +56,7 @@ Persistent<Function> HdtDocument::CreateConstructor() {
   constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
   // Create prototype
   Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
-  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(Search)->GetFunction());
+  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(SearchAsync)->GetFunction());
   prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
   prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
   return Persistent<Function>::New(constructorTemplate->GetFunction());
@@ -69,10 +70,9 @@ Handle<Value> HdtDocument::New(const Arguments& args) {
   HandleScope scope;
   assert(args.Length() == 1);
   assert(args.IsConstructCall());
-  const String::Utf8Value filename(args[0]);
 
   HdtDocument* hdtDocument;
-  try { hdtDocument = new HdtDocument(*filename); }
+  try { hdtDocument = new HdtDocument(*String::Utf8Value(args[0])); }
   catch (const char* error) {
     ThrowException(Exception::Error(String::New(error)));
     return scope.Close(Undefined());
@@ -81,35 +81,71 @@ Handle<Value> HdtDocument::New(const Arguments& args) {
   return args.This();
 }
 
+// Arguments for SearchAsync
+typedef struct SearchArgs {
+  HdtDocument* hdtDocument;
+  string subject, predicate, object;
+  Persistent<Function> callback;
+  vector<TripleString*> triples;
+
+  SearchArgs(HdtDocument* hdtDocument, char* subject, char* predicate, char* object,
+             Persistent<Function> callback)
+    : hdtDocument(hdtDocument), subject(subject), predicate(predicate), object(object),
+      callback(callback) { };
+} SearchArgs;
+
 // Searches for a triple pattern in the document.
 // JavaScript signature: HdtDocument#_search(subject, predicate, object, callback)
-Handle<Value> HdtDocument::Search(const Arguments& args) {
+Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
   HandleScope scope;
   assert(args.Length() == 4);
-  const String::Utf8Value   subject(args[0]);
-  const String::Utf8Value predicate(args[1]);
-  const String::Utf8Value    object(args[2]);
-  const Local<Function> callback = Local<Function>::Cast(args[3]);
 
-  // Fill array with result triples
-  Handle<Array> triples = Array::New(0);
-  HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(args.This());
-  IteratorTripleString *it = hdtDocument->hdt->search(*subject, *predicate, *object);
-  for (long count = 0; it->hasNext(); count++) {
-    TripleString *triple = it->next();
-    Handle<Object> tripleObject = Object::New();
-    tripleObject->Set(String::NewSymbol("subject"),   String::New(triple->getSubject()  .c_str()));
-    tripleObject->Set(String::NewSymbol("predicate"), String::New(triple->getPredicate().c_str()));
-    tripleObject->Set(String::NewSymbol("object"),    String::New(triple->getObject()   .c_str()));
-    triples->Set(count, tripleObject);
-  }
+  // Create asynchronous task
+  uv_work_t *request = new uv_work_t;
+  request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This()),
+      *String::Utf8Value(args[0]), *String::Utf8Value(args[1]), *String::Utf8Value(args[2]),
+      Persistent<Function>::New(Local<Function>::Cast(args[3])));
+  uv_queue_work(uv_default_loop(), request, HdtDocument::Search, HdtDocument::SearchDone);
+  return scope.Close(Undefined());
+}
+
+// Performs the search for a triple pattern for SearchAsync.
+void HdtDocument::Search(uv_work_t *request) {
+  // Search the HDT document
+  SearchArgs* args = (SearchArgs*)request->data;
+  IteratorTripleString *it = args->hdtDocument->
+    hdt->search(args->subject.c_str(), args->predicate.c_str(), args->object.c_str());
+
+  // Add the triples to the result vector
+  while (it->hasNext())
+    args->triples.push_back(new TripleString(*it->next()));
   delete it;
+}
 
-  // Send the triples array to the callback
+// Sends the result of Search through a callback.
+void HdtDocument::SearchDone(uv_work_t *request, const int status) {
+  // Convert the found triples into a JavaScript object array
+  SearchArgs* args = (SearchArgs*)request->data;
+  Handle<Array> triples = Array::New(args->triples.size());
+  long count = 0;
+  for (vector<TripleString*>::iterator it = args->triples.begin(); it != args->triples.end(); it++) {
+    Handle<Object> tripleObject = Object::New();
+    tripleObject->Set(String::NewSymbol("subject"),   String::New((*it)->getSubject()  .c_str()));
+    tripleObject->Set(String::NewSymbol("predicate"), String::New((*it)->getPredicate().c_str()));
+    tripleObject->Set(String::NewSymbol("object"),    String::New((*it)->getObject()   .c_str()));
+    triples->Set(count++, tripleObject);
+    delete *it;
+  }
+
+  // Send the JavaScript array through the callback
   const unsigned argc = 2;
   Handle<Value> argv[argc] = { Null(), triples };
-  callback->Call(Context::GetCurrent()->Global(), argc, argv);
-  return scope.Close(Undefined());
+  args->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+
+  // Delete objects used during the search
+  args->callback.Dispose();
+  delete args;
+  delete request;
 }
 
 // Closes the document, disabling all further operations.
