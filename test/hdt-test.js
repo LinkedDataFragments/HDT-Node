@@ -10,31 +10,33 @@ describe('hdt', function () {
   });
 
   describe('creating a new HDT document with fromFile', function () {
-    describe('without arguments', function () {
-      it('should throw an error', function () {
-        (function () { hdt.fromFile(); })
-        .should.throw('Invalid filename: undefined');
-      });
-    });
-
     describe('with a non-string argument', function () {
-      it('should throw an error', function () {
-        (function () { hdt.fromFile(5); })
-        .should.throw('Invalid filename: 5');
+      it('should throw an error', function (done) {
+        hdt.fromFile(null, function (error) {
+          error.should.be.an.Error;
+          error.message.should.equal('Invalid filename: null');
+          done();
+        });
       });
     });
 
     describe('with a non-existing file as argument', function () {
-      it('should throw an error', function () {
-        (function () { hdt.fromFile('abc'); })
-        .should.throw('Could not open HDT file "abc"');
+      it('should throw an error', function (done) {
+        hdt.fromFile('abc', function (error) {
+          error.should.be.an.Error;
+          error.message.should.equal('Could not open HDT file "abc"');
+          done();
+        });
       });
     });
 
     describe('with a non-HDT file as argument', function () {
-      it('should throw an error', function () {
-        (function () { hdt.fromFile('./test/hdt-test.js'); })
-        .should.throw('The file "./test/hdt-test.js" is not a valid HDT file');
+      it('should throw an error', function (done) {
+        hdt.fromFile('./test/hdt-test.js', function (error) {
+          error.should.be.an.Error;
+          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
+          done();
+        });
       });
     });
   });
@@ -42,8 +44,15 @@ describe('hdt', function () {
   describe('calling search', function () {
     describe('on an HDT document for an example HDT file', function () {
       var document;
-      before(function () { document = hdt.fromFile('./test/test.hdt'); });
-      after(function  () { document.close(); });
+      before(function (done) {
+        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+          document = hdtDocument;
+          done();
+        });
+      });
+      after(function (done) {
+        document.close(done);
+      });
 
       describe('with pattern null null null', function () {
         it('should return an array with matches', function (done) {
@@ -106,7 +115,12 @@ describe('hdt', function () {
 
     describe('on a closed HDT document', function () {
       var document;
-      before(function () { document = hdt.fromFile('./test/test.hdt'); document.close(); });
+      before(function (done) {
+        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+          document = hdtDocument;
+          document.close(done);
+        });
+      });
       it('should throw an error', function () {
         (function () { document.search(null, null, null, function () {}); })
         .should.throw('The HDT document cannot be read because it is closed');

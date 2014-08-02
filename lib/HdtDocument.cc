@@ -4,6 +4,31 @@
 using namespace v8;
 using namespace hdt;
 
+// Creates a new instance of HdtDocument.
+// JavaScript signature: createHdtDocument(filename, callback)
+Handle<Value> HdtDocument::Create(const Arguments& args) {
+  HandleScope scope;
+  assert(args.Length() == 2);
+
+  // Try to create an HdtDocument instance
+  TryCatch trycatch;
+  const unsigned argc = 1;
+  Handle<Value> error = Null();
+  Handle<Value> argv[argc] = { args[0] };
+  Handle<Value> hdtDocument = constructor->NewInstance(argc, argv);
+  if (trycatch.HasCaught()) {
+    error = trycatch.Exception();
+    hdtDocument = Undefined();
+  }
+
+  // Send it through the callback
+  const Local<Function> callback = Local<Function>::Cast(args[1]);
+  const unsigned argc2 = 2;
+  Handle<Value> argv2[argc2] = { error, hdtDocument };
+  callback->Call(Context::GetCurrent()->Global(), argc2, argv2);
+  return scope.Close(Undefined());
+}
+
 // Creates a new HDT document for the given filename.
 HdtDocument::HdtDocument(const char* filename) {
   hdt = HDTManager::mapHDT(filename);
@@ -22,7 +47,7 @@ void HdtDocument::Destroy() {
   }
 }
 
-// Creates a constructor for an HdtDocument.
+// Creates the constructor of HdtDocument.
 Persistent<Function> HdtDocument::CreateConstructor() {
   // Create constructor template
   Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(New);
@@ -35,6 +60,9 @@ Persistent<Function> HdtDocument::CreateConstructor() {
   prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
   return Persistent<Function>::New(constructorTemplate->GetFunction());
 }
+
+// Constructor of HdtDocument.
+Persistent<Function> HdtDocument::constructor = HdtDocument::CreateConstructor();
 
 // Constructs an HdtDocument wrapper.
 Handle<Value> HdtDocument::New(const Arguments& args) {
@@ -54,7 +82,7 @@ Handle<Value> HdtDocument::New(const Arguments& args) {
 }
 
 // Searches for a triple pattern in the document.
-// JavaScript signature: _search(subject, predicate, object, callback)
+// JavaScript signature: HdtDocument#_search(subject, predicate, object, callback)
 Handle<Value> HdtDocument::Search(const Arguments& args) {
   HandleScope scope;
   assert(args.Length() == 4);
@@ -78,17 +106,28 @@ Handle<Value> HdtDocument::Search(const Arguments& args) {
   delete it;
 
   // Send the triples array to the callback
-  Handle<Value> argv[2] = { Null(), triples };
-  callback->Call(Context::GetCurrent()->Global(), 2, argv);
+  const unsigned argc = 2;
+  Handle<Value> argv[argc] = { Null(), triples };
+  callback->Call(Context::GetCurrent()->Global(), argc, argv);
   return scope.Close(Undefined());
 }
 
 // Closes the document, disabling all further operations.
-// JavaScript signature: close()
+// JavaScript signature: HdtDocument#close([callback])
 Handle<Value> HdtDocument::Close(const Arguments& args) {
   HandleScope scope;
+
+  // Destroy the current document
   HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(args.This());
   hdtDocument->Destroy();
+
+  // Call the callback if one was passed
+  if (args.Length() >= 1 && args[0]->IsFunction()) {
+    const Local<Function> callback = Local<Function>::Cast(args[0]);
+    const unsigned argc = 1;
+    Handle<Value> argv[argc] = { Null() };
+    callback->Call(Context::GetCurrent()->Global(), argc, argv);
+  }
   return scope.Close(Undefined());
 }
 
