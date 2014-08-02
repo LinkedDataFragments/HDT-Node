@@ -15,6 +15,12 @@
         "<!@(ls -1 deps/hdt-lib/src/sequence/*.cpp)",
         "<!@(ls -1 deps/hdt-lib/src/triples/*.cpp)",
         "<!@(ls -1 deps/hdt-lib/src/util/*.cpp)",
+        "<!@(ls -1 deps/libcds-v1.0.12/src/static/sequence/*.cpp)",
+        "<!@(ls -1 deps/libcds-v1.0.12/src/static/bitsequence/*.cpp)",
+        "<!@(ls -1 deps/libcds-v1.0.12/src/static/mapper/*.cpp)",
+      ],
+      "sources!": [
+        "<!@(ls -1 deps/libcds-v1.0.12/src/static/sequence/*S.cpp)",
       ],
       "include_dirs": [
         "deps/hdt-lib/include",

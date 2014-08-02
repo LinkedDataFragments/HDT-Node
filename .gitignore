@@ -1,5 +1,6 @@
 *.o
 *.o.d
 *.log
+*.hdt.index
 build
 node_modules

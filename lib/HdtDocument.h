@@ -6,10 +6,12 @@
 
 class HdtDocument : public node::ObjectWrap {
  public:
-  static v8::Handle<v8::Value> Create(const v8::Arguments& args);
+  static v8::Handle<v8::Value> CreateAsync(const v8::Arguments& args);
+  static void Create(uv_work_t *req);
+  static void CreateDone(uv_work_t *req, const int status);
 
  private:
-  explicit HdtDocument(const char* filename);
+  explicit HdtDocument();
   ~HdtDocument();
 
   void Destroy();

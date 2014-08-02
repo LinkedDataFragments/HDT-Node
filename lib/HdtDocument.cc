@@ -5,35 +5,67 @@
 using namespace v8;
 using namespace hdt;
 
+// Arguments for CreateAsync
+typedef struct CreateArgs {
+  string filename;
+  HDT* hdt;
+  string error;
+  Persistent<Function> callback;
+
+  CreateArgs(char* filename, Persistent<Function> callback)
+    : filename(filename), hdt(NULL), callback(callback) { };
+} CreateArgs;
+
 // Creates a new instance of HdtDocument.
 // JavaScript signature: createHdtDocument(filename, callback)
-Handle<Value> HdtDocument::Create(const Arguments& args) {
+Handle<Value> HdtDocument::CreateAsync(const Arguments& args) {
   HandleScope scope;
   assert(args.Length() == 2);
 
-  // Try to create an HdtDocument instance
-  TryCatch trycatch;
-  const unsigned argc = 1;
-  Handle<Value> error = Null();
-  Handle<Value> argv[argc] = { args[0] };
-  Handle<Value> hdtDocument = constructor->NewInstance(argc, argv);
-  if (trycatch.HasCaught()) {
-    error = trycatch.Exception();
-    hdtDocument = Undefined();
-  }
-
-  // Send it through the callback
-  const Local<Function> callback = Local<Function>::Cast(args[1]);
-  const unsigned argc2 = 2;
-  Handle<Value> argv2[argc2] = { error, hdtDocument };
-  callback->Call(Context::GetCurrent()->Global(), argc2, argv2);
+  // Create asynchronous task
+  uv_work_t *request = new uv_work_t;
+  request->data = new CreateArgs(*String::Utf8Value(args[0]),
+      Persistent<Function>::New(Local<Function>::Cast(args[1])));
+  uv_queue_work(uv_default_loop(), request, HdtDocument::Create, HdtDocument::CreateDone);
   return scope.Close(Undefined());
 }
 
-// Creates a new HDT document for the given filename.
-HdtDocument::HdtDocument(const char* filename) {
-  hdt = HDTManager::mapHDT(filename);
+// Performs the creation of the HDT document's internals
+void HdtDocument::Create(uv_work_t *request) {
+  CreateArgs* args = (CreateArgs*)request->data;
+  try { args->hdt = HDTManager::mapIndexedHDT(args->filename.c_str()); }
+  catch (const char* error) { args->error = string(error); }
 }
+
+// Sends the result of Create through a callback.
+void HdtDocument::CreateDone(uv_work_t *request, const int status) {
+  CreateArgs* args = (CreateArgs*)request->data;
+
+  // Send new HdtDocument object (or error) through the callback
+  const unsigned argc = 2;
+  Handle<Value> argv[argc] = { Null(), Undefined() };
+  if (args->hdt) {
+    // Create new HDT document
+    Local<Object> newDocument = constructor->NewInstance(0, NULL);
+    argv[1] = newDocument;
+    // Set the HDT instance, which was created asynchronously by Create
+    HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(newDocument);
+    hdtDocument->hdt = args->hdt;
+  }
+  else {
+    // HDT instance creation was unsuccessful; send error
+    argv[0] = Exception::Error(String::New(args->error.c_str()));
+  }
+  args->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+
+  // Delete objects used during the creation
+  args->callback.Dispose();
+  delete args;
+  delete request;
+}
+
+// Creates a new document.
+HdtDocument::HdtDocument() : hdt(NULL) { }
 
 // Deletes the document.
 HdtDocument::~HdtDocument() {
@@ -68,15 +100,9 @@ Persistent<Function> HdtDocument::constructor = HdtDocument::CreateConstructor()
 // Constructs an HdtDocument wrapper.
 Handle<Value> HdtDocument::New(const Arguments& args) {
   HandleScope scope;
-  assert(args.Length() == 1);
   assert(args.IsConstructCall());
 
-  HdtDocument* hdtDocument;
-  try { hdtDocument = new HdtDocument(*String::Utf8Value(args[0])); }
-  catch (const char* error) {
-    ThrowException(Exception::Error(String::New(error)));
-    return scope.Close(Undefined());
-  }
+  HdtDocument* hdtDocument = new HdtDocument();
   hdtDocument->Wrap(args.This());
   return args.This();
 }
