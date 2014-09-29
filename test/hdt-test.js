@@ -55,60 +55,121 @@ describe('hdt', function () {
       });
 
       describe('with pattern null null null', function () {
-        it('should return an array with matches', function (done) {
-          document.search(null, null, null, function (error, triples) {
-            triples.should.be.an.Array;
-            triples.should.have.lengthOf(10);
-            triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri4' });
-            done(error);
-          });
+        var results;
+        before(function (done) {
+          document.search(null, null, null,
+                          function (error, triples) { results = triples; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          results.should.be.an.Array;
+          results.should.have.lengthOf(132);
+          results[0].should.eql({ subject:   'http://example.org/s1',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o001' });
         });
       });
 
-      describe('with pattern ex:uri3 null null', function () {
-        it('should return an array with matches', function (done) {
-          document.search('http://example.org/uri3', null, null, function (error, triples) {
-            triples.should.be.an.Array;
-            triples.should.have.lengthOf(2);
-            triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri4' });
-            triples[1].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri5' });
-            done(error);
-          });
+      describe('with pattern ex:s2 null null', function () {
+        var results;
+        before(function (done) {
+          document.search('http://example.org/s2', null, null,
+                          function (error, triples) { results = triples; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          results.should.be.an.Array;
+          results.should.have.lengthOf(10);
+          results[0].should.eql({ subject:   'http://example.org/s2',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o001' });
+          results[1].should.eql({ subject:   'http://example.org/s2',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o002' });
         });
       });
 
-      describe('with pattern null ex:predicate3 null', function () {
-        it('should return an array with matches', function (done) {
-          document.search(null, 'http://example.org/predicate3', null, function (error, triples) {
-            triples.should.be.an.Array;
-            triples.should.have.lengthOf(2);
-            triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri4' });
-            triples[1].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri5' });
-            done(error);
-          });
+      describe('with pattern null ex:p2 null', function () {
+        var results;
+        before(function (done) {
+          document.search(null, 'http://example.org/p2', null,
+                          function (error, triples) { results = triples; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          results.should.be.an.Array;
+          results.should.have.lengthOf(10);
+          results[0].should.eql({ subject:   'http://example.org/s3',
+                                  predicate: 'http://example.org/p2',
+                                  object:    'http://example.org/o001' });
+          results[1].should.eql({ subject:   'http://example.org/s3',
+                                  predicate: 'http://example.org/p2',
+                                  object:    'http://example.org/o002' });
         });
       });
 
-      describe('with pattern null null ex:uri4', function () {
-        it('should return an array with matches', function (done) {
-          document.search(null, null, 'http://example.org/uri4', function (error, triples) {
-            triples.should.be.an.Array;
-            triples.should.have.lengthOf(1);
-            triples[0].should.eql({ subject:   'http://example.org/uri3',
-                                    predicate: 'http://example.org/predicate3',
-                                    object:    'http://example.org/uri4' });
-            done(error);
-          });
+      describe('with pattern null ex:p3 null', function () {
+        var results;
+        before(function (done) {
+          document.search(null, 'http://example.org/p3', null,
+                          function (error, triples) { results = triples; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          results.should.be.an.Array;
+          results.should.have.lengthOf(12);
+          results[0].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '""' });
+          results[1].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '""@en' });
+          results[2].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '""^^http://example.org/literal' });
+          results[3].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '""^^http://www.w3.org/2001/XMLSchema#string' });
+          results[4].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"' });
+          results[5].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"@en' });
+          results[6].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"^^http://example.org/literal' });
+          results[7].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
+          results[8].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"b\'c\\\r\n\\"' });
+          results[9].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"b\'c\\\r\n\\"@en' });
+          results[10].should.eql({ subject:   'http://example.org/s4',
+                                   predicate: 'http://example.org/p3',
+                                   object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
+          results[11].should.eql({ subject:   'http://example.org/s4',
+                                   predicate: 'http://example.org/p3',
+                                   object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
+        });
+      });
+
+      describe('with pattern null null ex:o012', function () {
+        var results;
+        before(function (done) {
+          document.search(null, null, 'http://example.org/o012',
+                          function (error, triples) { results = triples; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          results.should.be.an.Array;
+          results.should.have.lengthOf(1);
+          results[0].should.eql({ subject:   'http://example.org/s1',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o012' });
         });
       });
     });
