@@ -5,6 +5,57 @@
 using namespace v8;
 using namespace hdt;
 
+
+
+/******** Construction and destruction ********/
+
+
+// Creates a new HDT document.
+HdtDocument::HdtDocument() : hdt(NULL) { }
+
+// Deletes the HDT document.
+HdtDocument::~HdtDocument() { Destroy(); }
+
+// Destroys the document, disabling all further operations.
+void HdtDocument::Destroy() {
+  if (hdt) {
+    delete hdt;
+    hdt = NULL;
+  }
+}
+
+// Constructs a JavaScript wrapper for an HDT document.
+Handle<Value> HdtDocument::New(const Arguments& args) {
+  HandleScope scope;
+  assert(args.IsConstructCall());
+
+  HdtDocument* hdtDocument = new HdtDocument();
+  hdtDocument->Wrap(args.This());
+  return args.This();
+}
+
+// Creates the constructor of HdtDocument.
+Persistent<Function> HdtDocument::CreateConstructor() {
+  // Create constructor template
+  Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(New);
+  constructorTemplate->SetClassName(String::NewSymbol("HdtDocument"));
+  constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+  // Create prototype
+  Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
+  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(SearchAsync)->GetFunction());
+  prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
+  prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
+  return Persistent<Function>::New(constructorTemplate->GetFunction());
+}
+
+// Constructor of HdtDocument.
+Persistent<Function> HdtDocument::constructor = HdtDocument::CreateConstructor();
+
+
+
+/******** createHdtDocument(filename) ********/
+
+
 // Arguments for CreateAsync
 typedef struct CreateArgs {
   string filename;
@@ -64,60 +115,20 @@ void HdtDocument::CreateDone(uv_work_t *request, const int status) {
   delete request;
 }
 
-// Creates a new document.
-HdtDocument::HdtDocument() : hdt(NULL) { }
 
-// Deletes the document.
-HdtDocument::~HdtDocument() {
-  Destroy();
-}
 
-// Destroys the document, disabling all further operations.
-void HdtDocument::Destroy() {
-  if (hdt) {
-    delete hdt;
-    hdt = NULL;
-  }
-}
+/******** HdtDocument#_search(subject, predicate, object, callback) ********/
 
-// Creates the constructor of HdtDocument.
-Persistent<Function> HdtDocument::CreateConstructor() {
-  // Create constructor template
-  Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(New);
-  constructorTemplate->SetClassName(String::NewSymbol("HdtDocument"));
-  constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-  // Create prototype
-  Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
-  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(SearchAsync)->GetFunction());
-  prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
-  prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
-  return Persistent<Function>::New(constructorTemplate->GetFunction());
-}
-
-// Constructor of HdtDocument.
-Persistent<Function> HdtDocument::constructor = HdtDocument::CreateConstructor();
-
-// Constructs an HdtDocument wrapper.
-Handle<Value> HdtDocument::New(const Arguments& args) {
-  HandleScope scope;
-  assert(args.IsConstructCall());
-
-  HdtDocument* hdtDocument = new HdtDocument();
-  hdtDocument->Wrap(args.This());
-  return args.This();
-}
 
 // Arguments for SearchAsync
 typedef struct SearchArgs {
-  HdtDocument* hdtDocument;
+  HDT* hdt;
   string subject, predicate, object;
   Persistent<Function> callback;
   vector<TripleString*> triples;
 
-  SearchArgs(HdtDocument* hdtDocument, char* subject, char* predicate, char* object,
-             Persistent<Function> callback)
-    : hdtDocument(hdtDocument), subject(subject), predicate(predicate), object(object),
-      callback(callback) { };
+  SearchArgs(HDT* hdt, char* subject, char* predicate, char* object, Persistent<Function> callback)
+    : hdt(hdt), subject(subject), predicate(predicate), object(object), callback(callback) { };
 } SearchArgs;
 
 // Searches for a triple pattern in the document.
@@ -128,7 +139,7 @@ Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
 
   // Create asynchronous task
   uv_work_t *request = new uv_work_t;
-  request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This()),
+  request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This())->hdt,
       *String::Utf8Value(args[0]), *String::Utf8Value(args[1]), *String::Utf8Value(args[2]),
       Persistent<Function>::New(Local<Function>::Cast(args[3])));
   uv_queue_work(uv_default_loop(), request, HdtDocument::Search, HdtDocument::SearchDone);
@@ -139,7 +150,7 @@ Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
 void HdtDocument::Search(uv_work_t *request) {
   // Search the HDT document
   SearchArgs* args = (SearchArgs*)request->data;
-  IteratorTripleString *it = args->hdtDocument->
+  IteratorTripleString *it = args->
     hdt->search(args->subject.c_str(), args->predicate.c_str(), args->object.c_str());
 
   // Add the triples to the result vector
@@ -174,6 +185,11 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
   delete request;
 }
 
+
+
+/******** HdtDocument#close() ********/
+
+
 // Closes the document, disabling all further operations.
 // JavaScript signature: HdtDocument#close([callback])
 Handle<Value> HdtDocument::Close(const Arguments& args) {
@@ -192,6 +208,11 @@ Handle<Value> HdtDocument::Close(const Arguments& args) {
   }
   return scope.Close(Undefined());
 }
+
+
+
+/******** HdtDocument#closed ********/
+
 
 // Gets the version of the module.
 Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorInfo& info) {
