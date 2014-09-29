@@ -124,38 +124,60 @@ void HdtDocument::CreateDone(uv_work_t *request, const int status) {
 typedef struct SearchArgs {
   HDT* hdt;
   string subject, predicate, object;
+  uint32_t offset, limit;
   Persistent<Function> callback;
   vector<TripleString*> triples;
+  size_t totalCount;
 
-  SearchArgs(HDT* hdt, char* subject, char* predicate, char* object, Persistent<Function> callback)
-    : hdt(hdt), subject(subject), predicate(predicate), object(object), callback(callback) { };
+  SearchArgs(HDT* hdt, char* subject, char* predicate, char* object,
+             uint32_t offset, uint32_t limit, Persistent<Function> callback)
+    : hdt(hdt), subject(subject), predicate(predicate), object(object),
+      offset(offset), limit(limit), callback(callback), totalCount(0) { };
 } SearchArgs;
 
 // Searches for a triple pattern in the document.
-// JavaScript signature: HdtDocument#_search(subject, predicate, object, callback)
+// JavaScript signature: HdtDocument#_search(subject, predicate, object, offset, limit, callback)
 Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
   HandleScope scope;
-  assert(args.Length() == 4);
+  assert(args.Length() == 6);
 
   // Create asynchronous task
   uv_work_t *request = new uv_work_t;
   request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This())->hdt,
       *String::Utf8Value(args[0]), *String::Utf8Value(args[1]), *String::Utf8Value(args[2]),
-      Persistent<Function>::New(Local<Function>::Cast(args[3])));
+      args[3]->Uint32Value(), args[4]->Uint32Value(),
+      Persistent<Function>::New(Local<Function>::Cast(args[5])));
   uv_queue_work(uv_default_loop(), request, HdtDocument::Search, HdtDocument::SearchDone);
   return scope.Close(Undefined());
 }
 
 // Performs the search for a triple pattern for SearchAsync.
 void HdtDocument::Search(uv_work_t *request) {
-  // Search the HDT document
+  // Prepare the triple pattern
   SearchArgs* args = (SearchArgs*)request->data;
-  IteratorTripleString *it = args->
-    hdt->search(args->subject.c_str(), args->predicate.c_str(), args->object.c_str());
+  Dictionary* dictionary = args->hdt->getDictionary();
+	TripleString triple(args->subject.c_str(), args->predicate.c_str(), args->object.c_str());
+  TripleID tripleId;
+  dictionary->tripleStringtoTripleID(triple, tripleId);
+  if ((args->subject[0]   && !tripleId.getSubject())   ||
+      (args->predicate[0] && !tripleId.getPredicate()) ||
+      (args->object[0]    && !tripleId.getObject()))   return;
+
+  // Estimate the total number of triples
+  Triples* triples = args->hdt->getTriples();
+  IteratorTripleID* it = triples->search(tripleId);
+  args->totalCount = it->estimatedNumResults();
+
+  // Go to the right offset
+  uint32_t offset = args->offset, limit = args->limit;
+  while (offset-- && it->hasNext()) it->next();
 
   // Add the triples to the result vector
-  while (it->hasNext())
-    args->triples.push_back(new TripleString(*it->next()));
+  while (limit--  && it->hasNext()) {
+    TripleString* triple = new TripleString();
+    dictionary->tripleIDtoTripleString(*it->next(), *triple);
+    args->triples.push_back(triple);
+  }
   delete it;
 }
 
@@ -174,9 +196,9 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
     delete *it;
   }
 
-  // Send the JavaScript array through the callback
-  const unsigned argc = 2;
-  Handle<Value> argv[argc] = { Null(), triples };
+  // Send the JavaScript array and estimated total count through the callback
+  const unsigned argc = 3;
+  Handle<Value> argv[argc] = { Null(), triples, Integer::New(args->totalCount) };
   args->callback->Call(Context::GetCurrent()->Global(), argc, argv);
 
   // Delete objects used during the search
