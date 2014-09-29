@@ -154,6 +154,29 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern ex:s2 ?p ?o', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.search('http://example.org/s2', '?p', '?o',
+                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(10);
+          triples[0].should.eql({ subject:   'http://example.org/s2',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o001' });
+          triples[1].should.eql({ subject:   'http://example.org/s2',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o002' });
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+      });
+
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount;
         before(function (done) {
