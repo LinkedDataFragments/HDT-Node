@@ -131,6 +131,23 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null null null, offset 200 and limit 5', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.search(null, null, null, { offset: 200, limit: 5 },
+                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.be.empty;
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+      });
+
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount;
         before(function (done) {
@@ -147,6 +164,26 @@ describe('hdt', function () {
           triples[1].should.eql({ subject:   'http://example.org/s2',
                                   predicate: 'http://example.org/p1',
                                   object:    'http://example.org/o002' });
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+      });
+
+      describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.search('http://example.org/s2', null, null, { offset: 2, limit: 1 },
+                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(1);
+          triples[0].should.eql({ subject:   'http://example.org/s2',
+                                  predicate: 'http://example.org/p1',
+                                  object:    'http://example.org/o003' });
         });
 
         it('should estimate the total count as 10', function () {

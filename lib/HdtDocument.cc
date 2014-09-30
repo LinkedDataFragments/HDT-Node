@@ -170,7 +170,11 @@ void HdtDocument::Search(uv_work_t *request) {
 
   // Go to the right offset
   uint32_t offset = args->offset, limit = args->limit;
-  while (offset && it->hasNext()) it->next(), offset--;
+  if (it->canGoTo())
+    try { it->goTo(offset), offset = 0; }
+    catch (char const* error) { /* invalid offset */ }
+  else
+    while (offset && it->hasNext()) it->next(), offset--;
 
   // Add matching triples to the result vector
   if (!offset) {
