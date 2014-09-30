@@ -170,13 +170,15 @@ void HdtDocument::Search(uv_work_t *request) {
 
   // Go to the right offset
   uint32_t offset = args->offset, limit = args->limit;
-  while (offset-- && it->hasNext()) it->next();
+  while (offset && it->hasNext()) it->next(), offset--;
 
-  // Add the triples to the result vector
-  while (limit--  && it->hasNext()) {
-    TripleString* triple = new TripleString();
-    dictionary->tripleIDtoTripleString(*it->next(), *triple);
-    args->triples.push_back(triple);
+  // Add matching triples to the result vector
+  if (!offset) {
+    while (limit-- && it->hasNext()) {
+      TripleString* triple = new TripleString();
+      dictionary->tripleIDtoTripleString(*it->next(), *triple);
+      args->triples.push_back(triple);
+    }
   }
   delete it;
 }
