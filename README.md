@@ -5,6 +5,7 @@ for [RDF triples](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/#data-mo
 <br>
 The `hdt` npm package for Node.js brings fast access to HDT files through C bindings.
 
+
 ## Usage
 
 ### Opening and closing an HDT document
@@ -56,6 +57,24 @@ hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
     });
 });
 ```
+
+
+## Build manually
+To build the module from source, follow these instructions:
+```Shell
+git clone https://github.com/RubenVerborgh/HDT-Node.git hdt
+cd hdt
+git submodule init
+git submodule update
+npm install
+npm test
+```
+
+If you make changes to the source, do the following to rebuild:
+```bash
+node-gyp build && npm test
+```
+
 
 ## License
 
