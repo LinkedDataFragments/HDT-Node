@@ -22,7 +22,7 @@ class HdtDocument : public node::ObjectWrap {
   static v8::Persistent<v8::Function> CreateConstructor();
   static v8::Persistent<v8::Function> constructor;
 
-  // HdtDocument#_search(subject, predicate, object, offset, limit, callback)
+  // HdtDocument#_search(subject, predicate, object, offset, limit, callback, self)
   static v8::Handle<v8::Value> SearchAsync(const v8::Arguments& args);
   static void Search(uv_work_t *req);
   static void SearchDone(uv_work_t *req, const int status);

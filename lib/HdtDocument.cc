@@ -117,36 +117,40 @@ void HdtDocument::CreateDone(uv_work_t *request, const int status) {
 
 
 
-/******** HdtDocument#_search(subject, predicate, object, callback) ********/
+/******** HdtDocument#_search(subject, predicate, object, offset, limit, callback, self) ********/
 
 
 // Arguments for SearchAsync
 typedef struct SearchArgs {
   HDT* hdt;
+  // JavaScript function arguments
   string subject, predicate, object;
   uint32_t offset, limit;
   Persistent<Function> callback;
+  Persistent<Object> self;
+  // Callback return values
   vector<TripleString*> triples;
   size_t totalCount;
 
   SearchArgs(HDT* hdt, char* subject, char* predicate, char* object,
-             uint32_t offset, uint32_t limit, Persistent<Function> callback)
+             uint32_t offset, uint32_t limit, Persistent<Function> callback, Persistent<Object> self)
     : hdt(hdt), subject(subject), predicate(predicate), object(object),
-      offset(offset), limit(limit), callback(callback), totalCount(0) { };
+      offset(offset), limit(limit), callback(callback), self(self), totalCount(0) { };
 } SearchArgs;
 
 // Searches for a triple pattern in the document.
 // JavaScript signature: HdtDocument#_search(subject, predicate, object, offset, limit, callback)
 Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
   HandleScope scope;
-  assert(args.Length() == 6);
+  assert(args.Length() == 7);
 
   // Create asynchronous task
   uv_work_t *request = new uv_work_t;
   request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This())->hdt,
       *String::Utf8Value(args[0]), *String::Utf8Value(args[1]), *String::Utf8Value(args[2]),
       args[3]->Uint32Value(), args[4]->Uint32Value(),
-      Persistent<Function>::New(Local<Function>::Cast(args[5])));
+      Persistent<Function>::New(Local<Function>::Cast(args[5])),
+      Persistent<Object>::New(args[6]->IsObject() ? args[6]->ToObject() : args.This()));
   uv_queue_work(uv_default_loop(), request, HdtDocument::Search, HdtDocument::SearchDone);
   return scope.Close(Undefined());
 }
@@ -205,10 +209,11 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
   // Send the JavaScript array and estimated total count through the callback
   const unsigned argc = 3;
   Handle<Value> argv[argc] = { Null(), triples, Integer::New(args->totalCount) };
-  args->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+  args->callback->Call(args->self, argc, argv);
 
   // Delete objects used during the search
   args->callback.Dispose();
+  args->self.Dispose();
   delete args;
   delete request;
 }

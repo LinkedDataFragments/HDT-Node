@@ -12,31 +12,56 @@ describe('hdt', function () {
   describe('creating a new HDT document with fromFile', function () {
     describe('with a non-string argument', function () {
       it('should throw an error', function (done) {
+        var self = {};
         hdt.fromFile(null, function (error) {
+          this.should.equal(self);
           error.should.be.an.Error;
           error.message.should.equal('Invalid filename: null');
           done();
-        });
+        }, self);
       });
     });
 
     describe('with a non-existing file as argument', function () {
       it('should throw an error', function (done) {
+        var self = {};
         hdt.fromFile('abc', function (error) {
+          this.should.equal(self);
           error.should.be.an.Error;
           error.message.should.equal('Could not open HDT file "abc"');
           done();
-        });
+        }, self);
       });
     });
 
     describe('with a non-HDT file as argument', function () {
       it('should throw an error', function (done) {
+        var self = {};
         hdt.fromFile('./test/hdt-test.js', function (error) {
+          this.should.equal(self);
           error.should.be.an.Error;
           error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
           done();
+        }, self);
+      });
+    });
+
+    describe('without self value', function () {
+      it('should invoke the callback with `global` as `this`', function (done) {
+        hdt.fromFile('./test/test.hdt', function (error) {
+          this.should.equal(global);
+          done(error);
         });
+      });
+    });
+
+    describe('with a self value', function () {
+      it('should invoke the callback with that value as `this`', function (done) {
+        var self = {};
+        hdt.fromFile('./test/test.hdt', function (error) {
+          this.should.equal(self);
+          done(error);
+        }, self);
       });
     });
   });
@@ -54,6 +79,25 @@ describe('hdt', function () {
     });
 
     describe('being searched', function () {
+      describe('without self value', function () {
+        it('should invoke the callback with the HDT document as `this`', function (done) {
+          document.search('a', 'b', 'c', function (error) {
+            this.should.equal(document);
+            done(error);
+          });
+        });
+      });
+
+      describe('with a self value', function () {
+        var self = {};
+        it('should invoke the callback with that value as `this`', function (done) {
+          document.search('a', 'b', 'c', function (error) {
+            this.should.equal(self);
+            done(error);
+          }, self);
+        });
+      });
+
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
         before(function (done) {
@@ -329,6 +373,25 @@ describe('hdt', function () {
     });
 
     describe('being counted', function () {
+      describe('without self value', function () {
+        it('should invoke the callback with the HDT document as `this`', function (done) {
+          document.count('a', 'b', 'c', function (error) {
+            this.should.equal(document);
+            done(error);
+          });
+        });
+      });
+
+      describe('with a self value', function () {
+        var self = {};
+        it('should invoke the callback with that value as `this`', function (done) {
+          document.count('a', 'b', 'c', function (error) {
+            this.should.equal(self);
+            done(error);
+          }, self);
+        });
+      });
+
       describe('with a non-existing pattern', function () {
         var totalCount;
         before(function (done) {
@@ -413,9 +476,13 @@ describe('hdt', function () {
     });
 
     describe('being searched', function () {
-      it('should throw an error', function () {
-        (function () { document.search(null, null, null, function () {}); })
-        .should.throw('The HDT document cannot be read because it is closed');
+      it('should throw an error', function (done) {
+        document.search(null, null, null, function (error) {
+          this.should.equal(document);
+          error.should.be.an.instanceOf(Error);
+          error.message.should.equal('The HDT document cannot be read because it is closed');
+          done();
+        });
       });
     });
   });
