@@ -196,12 +196,15 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
   // Convert the found triples into a JavaScript object array
   SearchArgs* args = (SearchArgs*)request->data;
   Handle<Array> triples = Array::New(args->triples.size());
+  const Local<v8::String> SUBJECT   = String::NewSymbol("subject");
+  const Local<v8::String> PREDICATE = String::NewSymbol("predicate");
+  const Local<v8::String> OBJECT    = String::NewSymbol("object");
   long count = 0;
   for (vector<TripleString*>::iterator it = args->triples.begin(); it != args->triples.end(); it++) {
     Handle<Object> tripleObject = Object::New();
-    tripleObject->Set(String::NewSymbol("subject"),   String::New((*it)->getSubject()  .c_str()));
-    tripleObject->Set(String::NewSymbol("predicate"), String::New((*it)->getPredicate().c_str()));
-    tripleObject->Set(String::NewSymbol("object"),    String::New((*it)->getObject()   .c_str()));
+    tripleObject->Set(SUBJECT,   String::New((*it)->getSubject()  .c_str()));
+    tripleObject->Set(PREDICATE, String::New((*it)->getPredicate().c_str()));
+    tripleObject->Set(OBJECT,    String::New((*it)->getObject()   .c_str()));
     triples->Set(count++, tripleObject);
     delete *it;
   }
