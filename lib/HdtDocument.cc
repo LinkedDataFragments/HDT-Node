@@ -160,7 +160,7 @@ void HdtDocument::Search(uv_work_t *request) {
   // Prepare the triple pattern
   SearchArgs* args = (SearchArgs*)request->data;
   Dictionary* dictionary = args->hdt->getDictionary();
-	TripleString triple(args->subject.c_str(), args->predicate.c_str(), args->object.c_str());
+	TripleString triple = toHdtTriple(args->subject, args->predicate, args->object);
   TripleID tripleId;
   dictionary->tripleStringtoTripleID(triple, tripleId);
   if ((args->subject[0]   && !tripleId.getSubject())   ||
@@ -185,7 +185,7 @@ void HdtDocument::Search(uv_work_t *request) {
     while (limit-- && it->hasNext()) {
       TripleString* triple = new TripleString();
       dictionary->tripleIDtoTripleString(*it->next(), *triple);
-      args->triples.push_back(triple);
+      args->triples.push_back(fromHdtTriple(triple));
     }
   }
   delete it;
@@ -255,4 +255,57 @@ Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorIn
   HandleScope scope;
   HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(info.This());
   return scope.Close(Boolean::New(!hdtDocument->hdt));
+}
+
+
+
+/******** Utility functions ********/
+
+
+// The JavaScript representation for a literal with a datatype is
+//   "literal"^^http://example.org/datatype
+// whereas the HDT representation is
+//   "literal"^^<http://example.org/datatype>
+// The functions below convert when needed.
+
+
+// Creates an HDT triple from the JavaScript components
+TripleString toHdtTriple(string& subject, string& predicate, string& object) {
+  // Check if the object is a literal with a datatype, which needs conversion
+  const char *obj, *objLast; char* literal = NULL;
+  if (*(obj = &*object.begin()) == '"' && *(objLast = &*object.end() - 1) != '"') {
+    // Find the possible start of the datatype
+    const char *datatype = objLast;
+    while (obj != --datatype && *datatype != '@' && *datatype != '^');
+    // Change the data type representation by adding angular brackets
+    if (*datatype == '^') {
+      char* cpy = literal = new char[objLast - obj + 2 + 1];
+      for (datatype++; obj != datatype; *cpy++ = *obj++);
+      *cpy++ = '<';
+      for (objLast++; datatype != objLast; *cpy++ = *datatype++);
+      *cpy++ = '>'; *cpy++ = '\0';
+      obj = literal;
+    }
+  }
+
+  // Create the triple from its components
+  TripleString triple(subject.c_str(), predicate.c_str(), obj);
+  delete literal;
+  return triple;
+}
+
+// Creates a JavaScript triple in-place from the HDT triple components
+TripleString* fromHdtTriple(TripleString* triple) {
+  // Check if the object is a literal with a datatype, which needs conversion
+  string& object = triple->getObject();
+  string::iterator obj, objLast;
+  if (*(obj = object.begin()) == '"' && *(objLast = object.end() - 1) == '>') {
+    // Find the start of the datatype
+    string::iterator datatype = objLast;
+    while (obj != --datatype && *datatype != '<');
+    // Change the data type representation by removing angular brackets
+    if (*datatype == '<')
+      object.erase(datatype), object.erase(objLast - 1);
+  }
+  return triple;
 }
