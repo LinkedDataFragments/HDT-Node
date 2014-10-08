@@ -351,6 +351,26 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null null "a"^^http://example.org/literal', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.search(null, null, '"a"^^http://example.org/literal',
+                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(1);
+          triples[0].should.eql({ subject:   'http://example.org/s4',
+                                  predicate: 'http://example.org/p3',
+                                  object:    '"a"^^http://example.org/literal' });
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(1);
+        });
+      });
+
       describe('with pattern null null ex:o012', function () {
         var triples, totalCount;
         before(function (done) {
@@ -456,6 +476,18 @@ describe('hdt', function () {
         var totalCount;
         before(function (done) {
           document.count(null, null, 'http://example.org/o012',
+                         function (error, c) { totalCount = c; done(error); });
+        });
+
+        it('should return 1', function () {
+          totalCount.should.equal(1);
+        });
+      });
+
+      describe('with pattern null null "a"^^http://example.org/literal', function () {
+        var totalCount;
+        before(function (done) {
+          document.count(null, null, '"a"^^http://example.org/literal',
                          function (error, c) { totalCount = c; done(error); });
         });
 
