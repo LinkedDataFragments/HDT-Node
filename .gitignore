@@ -4,3 +4,5 @@
 *.hdt.index
 build
 node_modules
+deps/hdt-it
+deps/libcds-v1.0.12/tutorial
