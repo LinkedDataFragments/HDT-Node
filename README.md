@@ -8,6 +8,19 @@ The `hdt` npm package for Node.js brings fast access to HDT files through C bin
 
 ## Usage
 
+### Importing the library
+Install the library by adding `hdt` to your `package.json` or executing
+
+```bash
+$ npm install hdt
+```
+
+Then require the library.
+
+```JavaScript
+var hdt = require('hdt');
+```
+
 ### Opening and closing an HDT document
 Open an HDT document with `hdt.fromFile`,
 which takes filename and callback arguments.
