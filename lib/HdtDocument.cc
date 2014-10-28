@@ -279,7 +279,7 @@ TripleString toHdtTriple(string& subject, string& predicate, string& object) {
     while (obj != --datatype && *datatype != '@' && *datatype != '^');
     // Change the data type representation by adding angular brackets
     if (*datatype == '^') {
-      char* cpy = literal = new char[objLast - obj + 2 + 1];
+      char* cpy = literal = new char[objLast - obj + 4];
       for (datatype++; obj != datatype; *cpy++ = *obj++);
       *cpy++ = '<';
       for (objLast++; datatype != objLast; *cpy++ = *datatype++);
