@@ -34,10 +34,9 @@ class HdtDocument : public node::ObjectWrap {
   static v8::Handle<v8::Value> ClosedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
 };
 
-// Creates an HDT triple from the components
-hdt::TripleString toHdtTriple(string& subject, string& predicate, string& object);
-
-// Creates a JavaScript triple in-place from the HDT triple components
-hdt::TripleString* fromHdtTriple(hdt::TripleString* triple);
+// Converts a JavaScript literal to an HDT literal
+std::string& toHdtLiteral(std::string& literal);
+// Converts an HDT literal to a JavaScript literal
+std::string& fromHdtLiteral(std::string& literal);
 
 #endif

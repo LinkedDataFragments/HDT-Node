@@ -130,7 +130,8 @@ typedef struct SearchArgs {
   Persistent<Function> callback;
   Persistent<Object> self;
   // Callback return values
-  vector<TripleString*> triples;
+  vector<TripleID> triples;
+  map<unsigned int, string> subjects, predicates, objects;
   size_t totalCount;
 
   SearchArgs(HDT* hdt, char* subject, char* predicate, char* object,
@@ -160,10 +161,10 @@ Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
 void HdtDocument::Search(uv_work_t *request) {
   // Prepare the triple pattern
   SearchArgs* args = (SearchArgs*)request->data;
-  Dictionary* dictionary = args->hdt->getDictionary();
-	TripleString triple = toHdtTriple(args->subject, args->predicate, args->object);
+  Dictionary* dict = args->hdt->getDictionary();
+  TripleString triple(args->subject, args->predicate, toHdtLiteral(args->object));
   TripleID tripleId;
-  dictionary->tripleStringtoTripleID(triple, tripleId);
+  dict->tripleStringtoTripleID(triple, tripleId);
   if ((args->subject[0]   && !tripleId.getSubject())   ||
       (args->predicate[0] && !tripleId.getPredicate()) ||
       (args->object[0]    && !tripleId.getObject()))   return;
@@ -184,9 +185,18 @@ void HdtDocument::Search(uv_work_t *request) {
   // Add matching triples to the result vector
   if (!offset) {
     while (limit-- && it->hasNext()) {
-      TripleString* triple = new TripleString();
-      dictionary->tripleIDtoTripleString(*it->next(), *triple);
-      args->triples.push_back(fromHdtTriple(triple));
+      TripleID& triple = *it->next();
+      args->triples.push_back(triple);
+      if (!args->subjects.count(triple.getSubject())) {
+        args->subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
+      }
+      if (!args->predicates.count(triple.getPredicate())) {
+        args->predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
+      }
+      if (!args->objects.count(triple.getObject())) {
+        string object(dict->idToString(triple.getObject(), OBJECT));
+        args->objects[triple.getObject()] = fromHdtLiteral(object);
+      }
     }
   }
   delete it;
@@ -194,21 +204,31 @@ void HdtDocument::Search(uv_work_t *request) {
 
 // Sends the result of Search through a callback.
 void HdtDocument::SearchDone(uv_work_t *request, const int status) {
-  // Convert the found triples into a JavaScript object array
   HandleScope scope;
   SearchArgs* args = (SearchArgs*)request->data;
-  Handle<Array> triples = Array::New(args->triples.size());
-  const Local<v8::String> SUBJECT   = String::NewSymbol("subject");
-  const Local<v8::String> PREDICATE = String::NewSymbol("predicate");
-  const Local<v8::String> OBJECT    = String::NewSymbol("object");
-  long count = 0;
-  for (vector<TripleString*>::iterator it = args->triples.begin(); it != args->triples.end(); it++) {
-    Handle<Object> tripleObject = Object::New();
-    tripleObject->Set(SUBJECT,    String::NewSymbol((*it)->getSubject()  .c_str()));
-    tripleObject->Set(PREDICATE,  String::NewSymbol((*it)->getPredicate().c_str()));
-    tripleObject->Set(OBJECT,     String::NewSymbol((*it)->getObject()   .c_str()));
+
+  // Convert the triple components into strings
+  map<unsigned int, string>::const_iterator it;
+  map<unsigned int, Local<String> > subjects, predicates, objects;
+  for (it = args->subjects.begin(); it != args->subjects.end(); it++)
+    subjects[it->first] = String::NewSymbol(it->second.c_str());
+  for (it = args->predicates.begin(); it != args->predicates.end(); it++)
+    predicates[it->first] = String::NewSymbol(it->second.c_str());
+  for (it = args->objects.begin(); it != args->objects.end(); it++)
+    objects[it->first] = String::NewSymbol(it->second.c_str());
+
+  // Convert the triples into a JavaScript object array
+  uint32_t count = 0;
+  Local<Array> triples = Array::New(args->triples.size());
+  const Local<String> SUBJECT   = String::NewSymbol("subject");
+  const Local<String> PREDICATE = String::NewSymbol("predicate");
+  const Local<String> OBJECT    = String::NewSymbol("object");
+  for (vector<TripleID>::const_iterator it = args->triples.begin(); it != args->triples.end(); it++) {
+    Local<Object> tripleObject = Object::New();
+    tripleObject->Set(SUBJECT, subjects[it->getSubject()]);
+    tripleObject->Set(PREDICATE, predicates[it->getPredicate()]);
+    tripleObject->Set(OBJECT, objects[it->getObject()]);
     triples->Set(count++, tripleObject);
-    delete *it;
   }
 
   // Send the JavaScript array and estimated total count through the callback
@@ -270,43 +290,42 @@ Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorIn
 // The functions below convert when needed.
 
 
-// Creates an HDT triple from the JavaScript components
-TripleString toHdtTriple(string& subject, string& predicate, string& object) {
+// Converts a JavaScript literal to an HDT literal
+string& toHdtLiteral(string& literal) {
   // Check if the object is a literal with a datatype, which needs conversion
-  const char *obj, *objLast; char* literal = NULL;
-  if (*(obj = &*object.begin()) == '"' && *(objLast = &*object.end() - 1) != '"') {
-    // Find the possible start of the datatype
-    const char *datatype = objLast;
+  string::const_iterator obj;
+  string::iterator objLast;
+  if (*(obj = literal.begin()) == '"' && *(objLast = literal.end() - 1) != '"') {
+    // If the start of a datatype was found, surround it with angular brackets
+    string::const_iterator datatype = objLast;
     while (obj != --datatype && *datatype != '@' && *datatype != '^');
-    // Change the data type representation by adding angular brackets
     if (*datatype == '^') {
-      char* cpy = literal = new char[objLast - obj + 4];
-      for (datatype++; obj != datatype; *cpy++ = *obj++);
-      *cpy++ = '<';
-      for (objLast++; datatype != objLast; *cpy++ = *datatype++);
-      *cpy++ = '>'; *cpy++ = '\0';
-      obj = literal;
+      // Allocate space for brackets, and update iterators
+      literal.resize(literal.length() + 2);
+      datatype += (literal.begin() - obj) + 1;
+      objLast = literal.end() - 1;
+      // Add brackets
+      *objLast = '>';
+      while (--objLast != datatype)
+        *objLast = *(objLast - 1);
+      *objLast = '<';
     }
   }
-
-  // Create the triple from its components
-  TripleString triple(subject.c_str(), predicate.c_str(), obj);
-  delete literal;
-  return triple;
+  return literal;
 }
 
-// Creates a JavaScript triple in-place from the HDT triple components
-TripleString* fromHdtTriple(TripleString* triple) {
-  // Check if the object is a literal with a datatype, which needs conversion
-  string& object = triple->getObject();
-  string::iterator obj, objLast;
-  if (*(obj = object.begin()) == '"' && *(objLast = object.end() - 1) == '>') {
+// Converts an HDT literal to a JavaScript literal
+string& fromHdtLiteral(string& literal) {
+  // Check if the literal has a datatype, which needs conversion
+  string::const_iterator obj;
+  string::iterator objLast;
+  if (*(obj = literal.begin()) == '"' && *(objLast = literal.end() - 1) == '>') {
     // Find the start of the datatype
     string::iterator datatype = objLast;
     while (obj != --datatype && *datatype != '<');
-    // Change the data type representation by removing angular brackets
+    // Change the datatype representation by removing angular brackets
     if (*datatype == '<')
-      object.erase(datatype), object.erase(objLast - 1);
+      literal.erase(datatype), literal.erase(objLast - 1);
   }
-  return triple;
+  return literal;
 }
