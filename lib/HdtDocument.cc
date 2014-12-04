@@ -204,9 +204,9 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
   long count = 0;
   for (vector<TripleString*>::iterator it = args->triples.begin(); it != args->triples.end(); it++) {
     Handle<Object> tripleObject = Object::New();
-    tripleObject->Set(SUBJECT,   String::New((*it)->getSubject()  .c_str()));
-    tripleObject->Set(PREDICATE, String::New((*it)->getPredicate().c_str()));
-    tripleObject->Set(OBJECT,    String::New((*it)->getObject()   .c_str()));
+    tripleObject->Set(SUBJECT,    String::NewSymbol((*it)->getSubject()  .c_str()));
+    tripleObject->Set(PREDICATE,  String::NewSymbol((*it)->getPredicate().c_str()));
+    tripleObject->Set(OBJECT,     String::NewSymbol((*it)->getObject()   .c_str()));
     triples->Set(count++, tripleObject);
     delete *it;
   }
