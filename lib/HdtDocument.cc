@@ -31,7 +31,7 @@ Handle<Value> HdtDocument::New(const Arguments& args) {
 
   HdtDocument* hdtDocument = new HdtDocument();
   hdtDocument->Wrap(args.This());
-  return args.This();
+  return scope.Close(args.This());
 }
 
 // Creates the constructor of HdtDocument.
@@ -90,6 +90,7 @@ void HdtDocument::Create(uv_work_t *request) {
 
 // Sends the result of Create through a callback.
 void HdtDocument::CreateDone(uv_work_t *request, const int status) {
+  HandleScope scope;
   CreateArgs* args = (CreateArgs*)request->data;
 
   // Send new HdtDocument object (or error) through the callback
@@ -194,6 +195,7 @@ void HdtDocument::Search(uv_work_t *request) {
 // Sends the result of Search through a callback.
 void HdtDocument::SearchDone(uv_work_t *request, const int status) {
   // Convert the found triples into a JavaScript object array
+  HandleScope scope;
   SearchArgs* args = (SearchArgs*)request->data;
   Handle<Array> triples = Array::New(args->triples.size());
   const Local<v8::String> SUBJECT   = String::NewSymbol("subject");
@@ -229,9 +231,8 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
 // Closes the document, disabling all further operations.
 // JavaScript signature: HdtDocument#close([callback])
 Handle<Value> HdtDocument::Close(const Arguments& args) {
-  HandleScope scope;
-
   // Destroy the current document
+  HandleScope scope;
   HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(args.This());
   hdtDocument->Destroy();
 
