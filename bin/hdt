@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+// Parse command-line arguments
+var args = require('minimist')(process.argv.slice(2), { alias:
+      { query: 'q', offset: 'o', limit: 'l', format: 'f' }
+    }),
+    hdtFile = args._[0],
+    query  = typeof args.query  === 'string' ? args.query  : '',
+    format = typeof args.format === 'string' ? args.format : 'text/turtle',
+    offset = /^\d+$/.test(args.offset) ? args.offset : 0,
+    limit  = /^\d+$/.test(args.limit)  ? args.limit  : 0;
+
+// Verify the arguments
+if (args._.length !== 1 || args.h || args.help) {
+  console.error("usage: hdt dataset.hdt --query '?s ?p ?o' --offset 200 --limit 100 --format turtle");
+  process.exit(1);
+}
+
+// Load the HDT file
+var hdt = require('../lib/hdt');
+hdt.fromFile(hdtFile, function (error, hdtDocument) {
+  if (error) console.error(error.message), process.exit(1);
+  // Search the HDT document for the given pattern
+  hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit },
+    function (error, triples, totalCount) {
+      // Write all matching triples
+      if (error) console.error(error.message), process.exit(1);
+      process.stdout.write('# Estimated total matches: ' + totalCount + '\n');
+      writer.addTriples(triples);
+      writer.end();
+      hdtDocument.close();
+    });
+});
+
+// Prepare the query and the result writer
+var parts = /^\s*<?([^\s>]*)>?\s*<?([^\s>]*)>?\s*<?([^]*?)>?\s*$/.exec(query),
+    subject   = parts[1][0] !== '?' && parts[1] || null,
+    predicate = parts[2][0] !== '?' && parts[2] || null,
+    object    = parts[3][0] !== '?' && parts[3] || null;
+var writer = new require('n3').Writer(process.stdout, { format: format });

@@ -71,6 +71,19 @@ hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
 });
 ```
 
+## Standalone utility
+The standalone utility `hdt` allows you to query HDT files from the command line.
+<br>
+To install system-wide, execute:
+```bash
+sudo npm install -g hdt
+```
+
+Specify queries as follows:
+```
+hdt dataset.hdt --query '?s ?p ?o' --offset 200 --limit 100 --format turtle
+```
+Replace any of the query variables by an [IRI or literal](https://github.com/RubenVerborgh/N3.js#triple-representation) to match specific patterns.
 
 ## Build manually
 To build the module from source, follow these instructions:
