@@ -23,6 +23,7 @@
         "<!@(ls -1 deps/libcds-v1.0.12/src/static/sequence/*S.cpp)",
       ],
       "include_dirs": [
+        "<!(node -e \"require('nan')\")",
         "deps/hdt-lib/include",
         "deps/libcds-v1.0.12/src/static/sequence",
         "deps/libcds-v1.0.12/src/static/bitsequence",

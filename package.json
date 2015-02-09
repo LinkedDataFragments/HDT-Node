@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "minimist": "^1.1.0",
-    "n3": "^0.4.0"
+    "n3": "^0.4.0",
+    "nan": "rvagg/nan.git#master"
   },
   "devDependencies": {
     "should": "4.0.x",
