@@ -6,6 +6,6 @@ using namespace v8;
 // Expose all members on the main module
 void InitializeHdtModule(Handle<Object> exports) {
   exports->Set(String::NewSymbol("createHdtDocument"),
-               FunctionTemplate::New(HdtDocument::CreateAsync)->GetFunction());
+               FunctionTemplate::New(HdtDocument::Create)->GetFunction());
 }
 NODE_MODULE(hdt, InitializeHdtModule)

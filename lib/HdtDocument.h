@@ -7,10 +7,11 @@
 
 class HdtDocument : public node::ObjectWrap {
  public:
-  // createHdtDocument(filename)
-  static v8::Handle<v8::Value> CreateAsync(const v8::Arguments& args);
-  static void Create(uv_work_t *req);
-  static void CreateDone(uv_work_t *req, const int status);
+  inline void Init(hdt::HDT* hdt) { this->hdt = hdt; }
+
+  // createHdtDocument(filename, callback)
+  static NAN_METHOD(Create);
+  static inline const v8::Persistent<v8::Function> GetConstructor() { return constructor; }
 
  private:
   hdt::HDT* hdt;
