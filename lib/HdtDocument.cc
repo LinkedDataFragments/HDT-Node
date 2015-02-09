@@ -42,7 +42,7 @@ Persistent<Function> HdtDocument::CreateConstructor() {
   constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
   // Create prototype
   Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
-  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(SearchAsync)->GetFunction());
+  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(Search)->GetFunction());
   prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
   prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
   return Persistent<Function>::New(constructorTemplate->GetFunction());
@@ -101,7 +101,7 @@ void HdtDocument::CreateDone(uv_work_t *request, const int status) {
     Local<Object> newDocument = constructor->NewInstance(0, NULL);
     argv[1] = newDocument;
     // Set the HDT instance, which was created asynchronously by Create
-    HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(newDocument);
+    HdtDocument* hdtDocument = Unwrap<HdtDocument>(newDocument);
     hdtDocument->hdt = args->hdt;
   }
   else {
@@ -120,127 +120,113 @@ void HdtDocument::CreateDone(uv_work_t *request, const int status) {
 
 /******** HdtDocument#_search(subject, predicate, object, offset, limit, callback, self) ********/
 
-
-// Arguments for SearchAsync
-typedef struct SearchArgs {
+class SearchWorker : public NanAsyncWorker {
   HDT* hdt;
   // JavaScript function arguments
   string subject, predicate, object;
   uint32_t offset, limit;
-  Persistent<Function> callback;
   Persistent<Object> self;
   // Callback return values
   vector<TripleID> triples;
   map<unsigned int, string> subjects, predicates, objects;
   size_t totalCount;
 
-  SearchArgs(HDT* hdt, char* subject, char* predicate, char* object,
-             uint32_t offset, uint32_t limit, Persistent<Function> callback, Persistent<Object> self)
-    : hdt(hdt), subject(subject), predicate(predicate), object(object),
-      offset(offset), limit(limit), callback(callback), self(self), totalCount(0) { };
-} SearchArgs;
+public:
+  SearchWorker(HDT* hdt, char* subject, char* predicate, char* object,
+               uint32_t offset, uint32_t limit, NanCallback* callback, Local<Object> self)
+    : NanAsyncWorker(callback),
+      hdt(hdt), subject(subject), predicate(predicate), object(object),
+      offset(offset), limit(limit), totalCount(0) {
+    SaveToPersistent("self", self);
+  };
+
+  void Execute() {
+    // Prepare the triple pattern
+    Dictionary* dict = hdt->getDictionary();
+    TripleString triple(subject, predicate, toHdtLiteral(object));
+    TripleID tripleId;
+    dict->tripleStringtoTripleID(triple, tripleId);
+    if ((subject[0]   && !tripleId.getSubject())   ||
+        (predicate[0] && !tripleId.getPredicate()) ||
+        (object[0]    && !tripleId.getObject()))   return;
+
+    // Estimate the total number of triples
+    IteratorTripleID* it = hdt->getTriples()->search(tripleId);
+    totalCount = it->estimatedNumResults();
+
+    // Go to the right offset
+    if (it->canGoTo())
+      try { it->goTo(offset), offset = 0; }
+      catch (char const* error) { /* invalid offset */ }
+    else
+      while (offset && it->hasNext()) it->next(), offset--;
+
+    // Add matching triples to the result vector
+    if (!offset) {
+      while (limit-- && it->hasNext()) {
+        TripleID& triple = *it->next();
+        triples.push_back(triple);
+        if (!subjects.count(triple.getSubject())) {
+          subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
+        }
+        if (!predicates.count(triple.getPredicate())) {
+          predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
+        }
+        if (!objects.count(triple.getObject())) {
+          string object(dict->idToString(triple.getObject(), OBJECT));
+          objects[triple.getObject()] = fromHdtLiteral(object);
+        }
+      }
+    }
+    delete it;
+  }
+
+  void HandleOKCallback() {
+    NanScope();
+    // Convert the triple components into strings
+    map<unsigned int, string>::const_iterator it;
+    map<unsigned int, Local<String> > subjectStrings, predicateStrings, objectStrings;
+    for (it = subjects.begin(); it != subjects.end(); it++)
+      subjectStrings[it->first] = NanNew<String>(it->second.c_str());
+    for (it = predicates.begin(); it != predicates.end(); it++)
+      predicateStrings[it->first] = NanNew<String>(it->second.c_str());
+    for (it = objects.begin(); it != objects.end(); it++)
+      objectStrings[it->first] = NanNew<String>(it->second.c_str());
+
+    // Convert the triples into a JavaScript object array
+    uint32_t count = 0;
+    Local<Array> triplesArray = NanNew<Array>(triples.size());
+    const Local<String> SUBJECT   = NanNew<String>("subject");
+    const Local<String> PREDICATE = NanNew<String>("predicate");
+    const Local<String> OBJECT    = NanNew<String>("object");
+    for (vector<TripleID>::const_iterator it = triples.begin(); it != triples.end(); it++) {
+      Local<Object> tripleObject = Object::New();
+      tripleObject->Set(SUBJECT, subjectStrings[it->getSubject()]);
+      tripleObject->Set(PREDICATE, predicateStrings[it->getPredicate()]);
+      tripleObject->Set(OBJECT, objectStrings[it->getObject()]);
+      triplesArray->Set(count++, tripleObject);
+    }
+
+    // Send the JavaScript array and estimated total count through the callback
+    const unsigned argc = 3;
+    Handle<Value> argv[argc] = { Null(), triplesArray, NanNew<Integer>((uint32_t)totalCount) };
+    callback->Call(GetFromPersistent("self"), argc, argv);
+  }
+};
 
 // Searches for a triple pattern in the document.
 // JavaScript signature: HdtDocument#_search(subject, predicate, object, offset, limit, callback)
-Handle<Value> HdtDocument::SearchAsync(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(HdtDocument::Search) {
+  NanScope();
   assert(args.Length() == 7);
 
   // Create asynchronous task
-  uv_work_t *request = new uv_work_t;
-  request->data = new SearchArgs(ObjectWrap::Unwrap<HdtDocument>(args.This())->hdt,
-      *String::Utf8Value(args[0]), *String::Utf8Value(args[1]), *String::Utf8Value(args[2]),
-      args[3]->Uint32Value(), args[4]->Uint32Value(),
-      Persistent<Function>::New(Local<Function>::Cast(args[5])),
-      Persistent<Object>::New(args[6]->IsObject() ? args[6]->ToObject() : args.This()));
-  uv_queue_work(uv_default_loop(), request, HdtDocument::Search, HdtDocument::SearchDone);
-  return scope.Close(Undefined());
-}
-
-// Performs the search for a triple pattern for SearchAsync.
-void HdtDocument::Search(uv_work_t *request) {
-  // Prepare the triple pattern
-  SearchArgs* args = (SearchArgs*)request->data;
-  Dictionary* dict = args->hdt->getDictionary();
-  TripleString triple(args->subject, args->predicate, toHdtLiteral(args->object));
-  TripleID tripleId;
-  dict->tripleStringtoTripleID(triple, tripleId);
-  if ((args->subject[0]   && !tripleId.getSubject())   ||
-      (args->predicate[0] && !tripleId.getPredicate()) ||
-      (args->object[0]    && !tripleId.getObject()))   return;
-
-  // Estimate the total number of triples
-  Triples* triples = args->hdt->getTriples();
-  IteratorTripleID* it = triples->search(tripleId);
-  args->totalCount = it->estimatedNumResults();
-
-  // Go to the right offset
-  uint32_t offset = args->offset, limit = args->limit;
-  if (it->canGoTo())
-    try { it->goTo(offset), offset = 0; }
-    catch (char const* error) { /* invalid offset */ }
-  else
-    while (offset && it->hasNext()) it->next(), offset--;
-
-  // Add matching triples to the result vector
-  if (!offset) {
-    while (limit-- && it->hasNext()) {
-      TripleID& triple = *it->next();
-      args->triples.push_back(triple);
-      if (!args->subjects.count(triple.getSubject())) {
-        args->subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
-      }
-      if (!args->predicates.count(triple.getPredicate())) {
-        args->predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
-      }
-      if (!args->objects.count(triple.getObject())) {
-        string object(dict->idToString(triple.getObject(), OBJECT));
-        args->objects[triple.getObject()] = fromHdtLiteral(object);
-      }
-    }
-  }
-  delete it;
-}
-
-// Sends the result of Search through a callback.
-void HdtDocument::SearchDone(uv_work_t *request, const int status) {
-  HandleScope scope;
-  SearchArgs* args = (SearchArgs*)request->data;
-
-  // Convert the triple components into strings
-  map<unsigned int, string>::const_iterator it;
-  map<unsigned int, Local<String> > subjects, predicates, objects;
-  for (it = args->subjects.begin(); it != args->subjects.end(); it++)
-    subjects[it->first] = String::NewSymbol(it->second.c_str());
-  for (it = args->predicates.begin(); it != args->predicates.end(); it++)
-    predicates[it->first] = String::NewSymbol(it->second.c_str());
-  for (it = args->objects.begin(); it != args->objects.end(); it++)
-    objects[it->first] = String::NewSymbol(it->second.c_str());
-
-  // Convert the triples into a JavaScript object array
-  uint32_t count = 0;
-  Local<Array> triples = Array::New(args->triples.size());
-  const Local<String> SUBJECT   = String::NewSymbol("subject");
-  const Local<String> PREDICATE = String::NewSymbol("predicate");
-  const Local<String> OBJECT    = String::NewSymbol("object");
-  for (vector<TripleID>::const_iterator it = args->triples.begin(); it != args->triples.end(); it++) {
-    Local<Object> tripleObject = Object::New();
-    tripleObject->Set(SUBJECT, subjects[it->getSubject()]);
-    tripleObject->Set(PREDICATE, predicates[it->getPredicate()]);
-    tripleObject->Set(OBJECT, objects[it->getObject()]);
-    triples->Set(count++, tripleObject);
-  }
-
-  // Send the JavaScript array and estimated total count through the callback
-  const unsigned argc = 3;
-  Handle<Value> argv[argc] = { Null(), triples, Integer::New(args->totalCount) };
-  args->callback->Call(args->self, argc, argv);
-
-  // Delete objects used during the search
-  args->callback.Dispose();
-  args->self.Dispose();
-  delete args;
-  delete request;
+  NanAsyncQueueWorker(new SearchWorker(Unwrap<HdtDocument>(args.This())->hdt,
+    *NanUtf8String(args[0]), *NanUtf8String(args[1]), *NanUtf8String(args[2]),
+    args[3]->Uint32Value(), args[4]->Uint32Value(),
+    new NanCallback(args[5].As<Function>()),
+    args[6]->IsObject() ? args[6]->ToObject() : args.This()));
+  NanReturnUndefined();
 }
 
 
@@ -253,7 +239,7 @@ void HdtDocument::SearchDone(uv_work_t *request, const int status) {
 Handle<Value> HdtDocument::Close(const Arguments& args) {
   // Destroy the current document
   HandleScope scope;
-  HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(args.This());
+  HdtDocument* hdtDocument = Unwrap<HdtDocument>(args.This());
   hdtDocument->Destroy();
 
   // Call the callback if one was passed
@@ -274,7 +260,7 @@ Handle<Value> HdtDocument::Close(const Arguments& args) {
 // Gets the version of the module.
 Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorInfo& info) {
   HandleScope scope;
-  HdtDocument* hdtDocument = ObjectWrap::Unwrap<HdtDocument>(info.This());
+  HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
   return scope.Close(Boolean::New(!hdtDocument->hdt));
 }
 
