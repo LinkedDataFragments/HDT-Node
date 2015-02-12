@@ -24,12 +24,10 @@ class HdtDocument : public node::ObjectWrap {
   static bool constructorInitialized;
   static v8::Persistent<v8::Function> constructor;
 
-  // HdtDocument#_search(subject, predicate, object, offset, limit, callback, self)
-  static NAN_METHOD(Search);
-
+  // HdtDocument#_searchTriples(subject, predicate, object, offset, limit, callback, self)
+  static NAN_METHOD(SearchTriples);
   // HdtDocument#close([callback], [self])
   static NAN_METHOD(Close);
-
   // HdtDocument#closed
   static NAN_PROPERTY_GETTER(ClosedGetter);
 };

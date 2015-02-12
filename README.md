@@ -48,7 +48,7 @@ A third parameter indicates an estimate of the total number of matching triples
 
 ```JavaScript
 hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-  hdtDocument.search('http://example.org/s1', null, null, { offset: 0, limit: 10 },
+  hdtDocument.searchTriples('http://example.org/s1', null, null, { offset: 0, limit: 10 },
     function (error, triples, totalCount) {
       console.log('Approximately ' + totalCount + ' triples match the pattern.');
       triples.forEach(function (triple) { console.log(triple); });
@@ -63,7 +63,7 @@ which takes subject, predicate, object, and callback arguments.
 
 ```JavaScript
 hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-  hdtDocument.count('http://example.org/s1', null, null,
+  hdtDocument.countTriples('http://example.org/s1', null, null,
     function (error, totalCount) {
       console.log('Approximately ' + totalCount + ' triples match the pattern.');
       hdtDocument.close();

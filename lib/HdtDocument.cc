@@ -44,8 +44,10 @@ const Persistent<Function>& HdtDocument::GetConstructor() {
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
     // Create prototype
     Local<ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
-    prototypeTemplate->Set(NanNew<String>("_search"), NanNew<FunctionTemplate>(Search)->GetFunction());
-    prototypeTemplate->Set(NanNew<String>("close"),   NanNew<FunctionTemplate>(Close) ->GetFunction());
+    prototypeTemplate->Set(NanNew<String>("_searchTriples"),
+                           NanNew<FunctionTemplate>(SearchTriples)->GetFunction());
+    prototypeTemplate->Set(NanNew<String>("close"),
+                           NanNew<FunctionTemplate>(Close) ->GetFunction());
     prototypeTemplate->SetAccessor(NanNew<String>("closed"), ClosedGetter, NULL);
     NanAssignPersistent(constructor, constructorTemplate->GetFunction());
   }
@@ -56,7 +58,7 @@ bool HdtDocument::constructorInitialized = false;
 
 
 
-/******** createHdtDocument(filename) ********/
+/******** createHdtDocument ********/
 
 class CreateWorker : public NanAsyncWorker {
   string filename;
@@ -96,9 +98,9 @@ NAN_METHOD(HdtDocument::Create) {
 
 
 
-/******** HdtDocument#_search(subject, predicate, object, offset, limit, callback, self) ********/
+/******** HdtDocument#_searchTriples ********/
 
-class SearchWorker : public NanAsyncWorker {
+class SearchTriplesWorker : public NanAsyncWorker {
   HDT* hdt;
   // JavaScript function arguments
   string subject, predicate, object;
@@ -110,8 +112,8 @@ class SearchWorker : public NanAsyncWorker {
   size_t totalCount;
 
 public:
-  SearchWorker(HDT* hdt, char* subject, char* predicate, char* object,
-               uint32_t offset, uint32_t limit, NanCallback* callback, Local<Object> self)
+  SearchTriplesWorker(HDT* hdt, char* subject, char* predicate, char* object,
+                      uint32_t offset, uint32_t limit, NanCallback* callback, Local<Object> self)
     : NanAsyncWorker(callback),
       hdt(hdt), subject(subject), predicate(predicate), object(object),
       offset(offset), limit(limit), totalCount(0) {
@@ -193,13 +195,13 @@ public:
 };
 
 // Searches for a triple pattern in the document.
-// JavaScript signature: HdtDocument#_search(subject, predicate, object, offset, limit, callback)
-NAN_METHOD(HdtDocument::Search) {
+// JavaScript signature: HdtDocument#_searchTriples(subject, predicate, object, offset, limit, callback)
+NAN_METHOD(HdtDocument::SearchTriples) {
   NanScope();
   assert(args.Length() == 7);
 
   // Create asynchronous task
-  NanAsyncQueueWorker(new SearchWorker(Unwrap<HdtDocument>(args.This())->hdt,
+  NanAsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(args.This())->hdt,
     *NanUtf8String(args[0]), *NanUtf8String(args[1]), *NanUtf8String(args[2]),
     args[3]->Uint32Value(), args[4]->Uint32Value(),
     new NanCallback(args[5].As<Function>()),
@@ -209,11 +211,11 @@ NAN_METHOD(HdtDocument::Search) {
 
 
 
-/******** HdtDocument#close() ********/
+/******** HdtDocument#close ********/
 
 
 // Closes the document, disabling all further operations.
-// JavaScript signature: HdtDocument#close([callback])
+// JavaScript signature: HdtDocument#close([callback], [self])
 NAN_METHOD(HdtDocument::Close) {
   // Destroy the current document
   NanScope();

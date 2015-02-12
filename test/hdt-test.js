@@ -83,7 +83,7 @@ describe('hdt', function () {
     describe('being searched', function () {
       describe('without self value', function () {
         it('should invoke the callback with the HDT document as `this`', function (done) {
-          document.search('a', 'b', 'c', function (error) {
+          document.searchTriples('a', 'b', 'c', function (error) {
             this.should.equal(document);
             done(error);
           });
@@ -93,7 +93,7 @@ describe('hdt', function () {
       describe('with a self value', function () {
         var self = {};
         it('should invoke the callback with that value as `this`', function (done) {
-          document.search('a', 'b', 'c', function (error) {
+          document.searchTriples('a', 'b', 'c', function (error) {
             this.should.equal(self);
             done(error);
           }, self);
@@ -103,8 +103,8 @@ describe('hdt', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search('a', null, null,
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples('a', null, null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -120,8 +120,8 @@ describe('hdt', function () {
       describe('with pattern null null null', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, null,
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -140,8 +140,8 @@ describe('hdt', function () {
       describe('with pattern null null null, offset 0 and limit 10', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, null, { offset: 0, limit: 10 },
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, null, { offset: 0, limit: 10 },
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -160,8 +160,8 @@ describe('hdt', function () {
       describe('with pattern null null null, offset 10 and limit 5', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, null, { offset: 10, limit: 5 },
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, null, { offset: 10, limit: 5 },
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -180,8 +180,8 @@ describe('hdt', function () {
       describe('with pattern null null null, offset 200 and limit 5', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, null, { offset: 200, limit: 5 },
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, null, { offset: 200, limit: 5 },
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -197,7 +197,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search('http://example.org/s2', null, null,
+          document.searchTriples('http://example.org/s2', null, null,
                           function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
@@ -220,8 +220,8 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search('http://example.org/s2', null, null, { offset: 2, limit: 1 },
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples('http://example.org/s2', null, null, { offset: 2, limit: 1 },
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -240,8 +240,8 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null, offset 200 and limit 1', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search('http://example.org/s2', null, null, { offset: 200, limit: 1 },
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples('http://example.org/s2', null, null, { offset: 200, limit: 1 },
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -257,8 +257,8 @@ describe('hdt', function () {
       describe('with pattern ex:s2 ?p ?o', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search('http://example.org/s2', '?p', '?o',
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples('http://example.org/s2', '?p', '?o',
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -280,8 +280,8 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, 'http://example.org/p2', null,
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, 'http://example.org/p2', null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -303,8 +303,8 @@ describe('hdt', function () {
       describe('with pattern null ex:p3 null', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, 'http://example.org/p3', null,
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, 'http://example.org/p3', null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -356,8 +356,8 @@ describe('hdt', function () {
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, '"a"^^http://example.org/literal',
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, '"a"^^http://example.org/literal',
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -376,8 +376,8 @@ describe('hdt', function () {
       describe('with pattern null null ex:o012', function () {
         var triples, totalCount;
         before(function (done) {
-          document.search(null, null, 'http://example.org/o012',
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+          document.searchTriples(null, null, 'http://example.org/o012',
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -397,7 +397,7 @@ describe('hdt', function () {
     describe('being counted', function () {
       describe('without self value', function () {
         it('should invoke the callback with the HDT document as `this`', function (done) {
-          document.count('a', 'b', 'c', function (error) {
+          document.countTriples('a', 'b', 'c', function (error) {
             this.should.equal(document);
             done(error);
           });
@@ -407,7 +407,7 @@ describe('hdt', function () {
       describe('with a self value', function () {
         var self = {};
         it('should invoke the callback with that value as `this`', function (done) {
-          document.count('a', 'b', 'c', function (error) {
+          document.countTriples('a', 'b', 'c', function (error) {
             this.should.equal(self);
             done(error);
           }, self);
@@ -417,8 +417,8 @@ describe('hdt', function () {
       describe('with a non-existing pattern', function () {
         var totalCount;
         before(function (done) {
-          document.count('a', null, null,
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples('a', null, null,
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 0', function () {
@@ -429,8 +429,8 @@ describe('hdt', function () {
       describe('with pattern null null null', function () {
         var totalCount;
         before(function (done) {
-          document.count(null, null, null,
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples(null, null, null,
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 132', function () {
@@ -441,8 +441,8 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null', function () {
         var totalCount;
         before(function (done) {
-          document.count('http://example.org/s2', null, null,
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples('http://example.org/s2', null, null,
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 10', function () {
@@ -453,8 +453,8 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null', function () {
         var totalCount;
         before(function (done) {
-          document.count(null, 'http://example.org/p2', null,
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples(null, 'http://example.org/p2', null,
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 1', function () {
@@ -465,8 +465,8 @@ describe('hdt', function () {
       describe('with pattern null ex:p3 null', function () {
         var totalCount;
         before(function (done) {
-          document.count(null, 'http://example.org/p3', null,
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples(null, 'http://example.org/p3', null,
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 1', function () {
@@ -477,8 +477,8 @@ describe('hdt', function () {
       describe('with pattern null null ex:o012', function () {
         var totalCount;
         before(function (done) {
-          document.count(null, null, 'http://example.org/o012',
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples(null, null, 'http://example.org/o012',
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 1', function () {
@@ -489,8 +489,8 @@ describe('hdt', function () {
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var totalCount;
         before(function (done) {
-          document.count(null, null, '"a"^^http://example.org/literal',
-                         function (error, c) { totalCount = c; done(error); });
+          document.countTriples(null, null, '"a"^^http://example.org/literal',
+                                function (error, c) { totalCount = c; done(error); });
         });
 
         it('should return 1', function () {
@@ -530,7 +530,7 @@ describe('hdt', function () {
 
     describe('being searched', function () {
       it('should throw an error', function (done) {
-        document.search(null, null, null, function (error) {
+        document.searchTriples(null, null, null, function (error) {
           this.should.equal(document);
           error.should.be.an.instanceOf(Error);
           error.message.should.equal('The HDT document cannot be read because it is closed');
