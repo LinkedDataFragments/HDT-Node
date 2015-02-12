@@ -27,7 +27,7 @@ class HdtDocument : public node::ObjectWrap {
   // HdtDocument#_search(subject, predicate, object, offset, limit, callback, self)
   static NAN_METHOD(Search);
 
-  // HdtDocument#close([callback])
+  // HdtDocument#close([callback], [self])
   static NAN_METHOD(Close);
 
   // HdtDocument#closed

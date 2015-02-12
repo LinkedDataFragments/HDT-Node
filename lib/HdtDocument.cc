@@ -203,7 +203,7 @@ NAN_METHOD(HdtDocument::Search) {
     *NanUtf8String(args[0]), *NanUtf8String(args[1]), *NanUtf8String(args[2]),
     args[3]->Uint32Value(), args[4]->Uint32Value(),
     new NanCallback(args[5].As<Function>()),
-    args[6]->IsObject() ? args[6]->ToObject() : args.This()));
+    args[6]->IsObject() ? args[6].As<Object>() : args.This()));
   NanReturnUndefined();
 }
 
@@ -223,9 +223,11 @@ NAN_METHOD(HdtDocument::Close) {
   // Call the callback if one was passed
   if (args.Length() >= 1 && args[0]->IsFunction()) {
     const Local<Function> callback = Local<Function>::Cast(args[0]);
+    const Local<Object> self = args.Length() >= 2 && args[1]->IsObject() ?
+                               args[1].As<Object>() : NanGetCurrentContext()->Global();
     const unsigned argc = 1;
     Handle<Value> argv[argc] = { NanNull() };
-    callback->Call(NanGetCurrentContext()->Global(), argc, argv);
+    callback->Call(self, argc, argv);
   }
   NanReturnUndefined();
 }

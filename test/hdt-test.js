@@ -48,8 +48,9 @@ describe('hdt', function () {
 
     describe('without self value', function () {
       it('should invoke the callback with `global` as `this`', function (done) {
-        hdt.fromFile('./test/test.hdt', function (error) {
+        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
           this.should.equal(global);
+          hdtDocument.close();
           done(error);
         });
       });
@@ -58,8 +59,9 @@ describe('hdt', function () {
     describe('with a self value', function () {
       it('should invoke the callback with that value as `this`', function (done) {
         var self = {};
-        hdt.fromFile('./test/test.hdt', function (error) {
+        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
           this.should.equal(self);
+          hdtDocument.close();
           done(error);
         }, self);
       });
@@ -494,6 +496,25 @@ describe('hdt', function () {
         it('should return 1', function () {
           totalCount.should.equal(1);
         });
+      });
+    });
+
+    describe('being closed', function () {
+      var self = {}, callbackThis, callbackArgs;
+      before(function (done) {
+        document.close(function () {
+          callbackThis = this, callbackArgs = arguments;
+          done();
+        }, self);
+      });
+
+      it('should not pass an error through the callback', function () {
+        callbackArgs.should.have.length(1);
+        callbackArgs.should.have.property(0, null);
+      });
+
+      it('should invoke the callback with the second argument as `this`', function () {
+        callbackThis.should.equal(self);
       });
     });
   });
