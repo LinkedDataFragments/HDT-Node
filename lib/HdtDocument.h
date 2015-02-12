@@ -11,7 +11,7 @@ class HdtDocument : public node::ObjectWrap {
 
   // createHdtDocument(filename, callback)
   static NAN_METHOD(Create);
-  static inline const v8::Persistent<v8::Function> GetConstructor() { return constructor; }
+  static const v8::Persistent<v8::Function>& GetConstructor();
 
  private:
   hdt::HDT* hdt;
@@ -20,18 +20,18 @@ class HdtDocument : public node::ObjectWrap {
   explicit HdtDocument();
   ~HdtDocument();
   void Destroy();
-  static v8::Handle<v8::Value> New(const v8::Arguments& args);
-  static v8::Persistent<v8::Function> CreateConstructor();
+  static NAN_METHOD(New);
+  static bool constructorInitialized;
   static v8::Persistent<v8::Function> constructor;
 
   // HdtDocument#_search(subject, predicate, object, offset, limit, callback, self)
   static NAN_METHOD(Search);
 
-  // HdtDocument#close()
-  static v8::Handle<v8::Value> Close(const v8::Arguments& args);
+  // HdtDocument#close([callback])
+  static NAN_METHOD(Close);
 
   // HdtDocument#closed
-  static v8::Handle<v8::Value> ClosedGetter(v8::Local<v8::String> property, const v8::AccessorInfo& info);
+  static NAN_PROPERTY_GETTER(ClosedGetter);
 };
 
 // Converts a JavaScript literal to an HDT literal

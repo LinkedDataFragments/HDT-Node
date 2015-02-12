@@ -25,31 +25,34 @@ void HdtDocument::Destroy() {
 }
 
 // Constructs a JavaScript wrapper for an HDT document.
-Handle<Value> HdtDocument::New(const Arguments& args) {
-  HandleScope scope;
+NAN_METHOD(HdtDocument::New) {
+  NanScope();
   assert(args.IsConstructCall());
 
   HdtDocument* hdtDocument = new HdtDocument();
   hdtDocument->Wrap(args.This());
-  return scope.Close(args.This());
+  NanReturnValue(args.This());
 }
 
-// Creates the constructor of HdtDocument.
-Persistent<Function> HdtDocument::CreateConstructor() {
-  // Create constructor template
-  Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(New);
-  constructorTemplate->SetClassName(String::NewSymbol("HdtDocument"));
-  constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-  // Create prototype
-  Local<v8::ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
-  prototypeTemplate->Set(String::NewSymbol("_search"), FunctionTemplate::New(Search)->GetFunction());
-  prototypeTemplate->Set(String::NewSymbol("close"),   FunctionTemplate::New(Close) ->GetFunction());
-  prototypeTemplate->SetAccessor(String::NewSymbol("closed"), ClosedGetter, NULL);
-  return Persistent<Function>::New(constructorTemplate->GetFunction());
+// Returns the constructor of HdtDocument.
+const Persistent<Function>& HdtDocument::GetConstructor() {
+  if (!constructorInitialized) {
+    constructorInitialized = true;
+    // Create constructor template
+    Local<FunctionTemplate> constructorTemplate = NanNew<FunctionTemplate>(New);
+    constructorTemplate->SetClassName(NanNew<String>("HdtDocument"));
+    constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
+    // Create prototype
+    Local<ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
+    prototypeTemplate->Set(NanNew<String>("_search"), NanNew<FunctionTemplate>(Search)->GetFunction());
+    prototypeTemplate->Set(NanNew<String>("close"),   NanNew<FunctionTemplate>(Close) ->GetFunction());
+    prototypeTemplate->SetAccessor(NanNew<String>("closed"), ClosedGetter, NULL);
+    NanAssignPersistent(constructor, constructorTemplate->GetFunction());
+  }
+  return constructor;
 }
-
-// Constructor of HdtDocument.
-Persistent<Function> HdtDocument::constructor = HdtDocument::CreateConstructor();
+Persistent<Function> HdtDocument::constructor;
+bool HdtDocument::constructorInitialized = false;
 
 
 
@@ -76,7 +79,7 @@ public:
     hdtDocument->Init(hdt);
     // Send new HdtDocument object (or error) through the callback
     const unsigned argc = 2;
-    Handle<Value> argv[argc] = { Null(), newDocument };
+    Handle<Value> argv[argc] = { NanNull(), newDocument };
     callback->Call(argc, argv);
   }
 };
@@ -175,7 +178,7 @@ public:
     const Local<String> PREDICATE = NanNew<String>("predicate");
     const Local<String> OBJECT    = NanNew<String>("object");
     for (vector<TripleID>::const_iterator it = triples.begin(); it != triples.end(); it++) {
-      Local<Object> tripleObject = Object::New();
+      Local<Object> tripleObject = NanNew<Object>();
       tripleObject->Set(SUBJECT, subjectStrings[it->getSubject()]);
       tripleObject->Set(PREDICATE, predicateStrings[it->getPredicate()]);
       tripleObject->Set(OBJECT, objectStrings[it->getObject()]);
@@ -184,7 +187,7 @@ public:
 
     // Send the JavaScript array and estimated total count through the callback
     const unsigned argc = 3;
-    Handle<Value> argv[argc] = { Null(), triplesArray, NanNew<Integer>((uint32_t)totalCount) };
+    Handle<Value> argv[argc] = { NanNull(), triplesArray, NanNew<Integer>((uint32_t)totalCount) };
     callback->Call(GetFromPersistent("self"), argc, argv);
   }
 };
@@ -211,9 +214,9 @@ NAN_METHOD(HdtDocument::Search) {
 
 // Closes the document, disabling all further operations.
 // JavaScript signature: HdtDocument#close([callback])
-Handle<Value> HdtDocument::Close(const Arguments& args) {
+NAN_METHOD(HdtDocument::Close) {
   // Destroy the current document
-  HandleScope scope;
+  NanScope();
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(args.This());
   hdtDocument->Destroy();
 
@@ -221,10 +224,10 @@ Handle<Value> HdtDocument::Close(const Arguments& args) {
   if (args.Length() >= 1 && args[0]->IsFunction()) {
     const Local<Function> callback = Local<Function>::Cast(args[0]);
     const unsigned argc = 1;
-    Handle<Value> argv[argc] = { Null() };
-    callback->Call(Context::GetCurrent()->Global(), argc, argv);
+    Handle<Value> argv[argc] = { NanNull() };
+    callback->Call(NanGetCurrentContext()->Global(), argc, argv);
   }
-  return scope.Close(Undefined());
+  NanReturnUndefined();
 }
 
 
@@ -233,10 +236,10 @@ Handle<Value> HdtDocument::Close(const Arguments& args) {
 
 
 // Gets the version of the module.
-Handle<Value> HdtDocument::ClosedGetter(Local<String> property, const AccessorInfo& info) {
-  HandleScope scope;
-  HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
-  return scope.Close(Boolean::New(!hdtDocument->hdt));
+NAN_PROPERTY_GETTER(HdtDocument::ClosedGetter) {
+  NanScope();
+  HdtDocument* hdtDocument = Unwrap<HdtDocument>(args.This());
+  NanReturnValue(NanNew<Boolean>(!hdtDocument->hdt));
 }
 
 
