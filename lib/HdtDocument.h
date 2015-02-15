@@ -7,7 +7,7 @@
 
 class HdtDocument : public node::ObjectWrap {
  public:
-  inline void Init(hdt::HDT* hdt) { this->hdt = hdt; }
+  HdtDocument(const v8::Local<v8::Object>& handle, hdt::HDT* hdt);
 
   // createHdtDocument(filename, callback)
   static NAN_METHOD(Create);
@@ -17,19 +17,16 @@ class HdtDocument : public node::ObjectWrap {
   hdt::HDT* hdt;
 
   // Construction and destruction
-  explicit HdtDocument();
   ~HdtDocument();
   void Destroy();
   static NAN_METHOD(New);
-  static bool constructorInitialized;
-  static v8::Persistent<v8::Function> constructor;
 
   // HdtDocument#_searchTriples(subject, predicate, object, offset, limit, callback, self)
   static NAN_METHOD(SearchTriples);
   // HdtDocument#close([callback], [self])
   static NAN_METHOD(Close);
   // HdtDocument#closed
-  static NAN_PROPERTY_GETTER(ClosedGetter);
+  static NAN_PROPERTY_GETTER(Closed);
 };
 
 // Converts a JavaScript literal to an HDT literal

@@ -11,7 +11,9 @@ using namespace hdt;
 
 
 // Creates a new HDT document.
-HdtDocument::HdtDocument() : hdt(NULL) { }
+HdtDocument::HdtDocument(const Local<Object>& handle, HDT* hdt) : hdt(hdt) {
+  this->Wrap(handle);
+}
 
 // Deletes the HDT document.
 HdtDocument::~HdtDocument() { Destroy(); }
@@ -28,16 +30,13 @@ void HdtDocument::Destroy() {
 NAN_METHOD(HdtDocument::New) {
   NanScope();
   assert(args.IsConstructCall());
-
-  HdtDocument* hdtDocument = new HdtDocument();
-  hdtDocument->Wrap(args.This());
   NanReturnValue(args.This());
 }
 
 // Returns the constructor of HdtDocument.
+Persistent<Function> constructor;
 const Persistent<Function>& HdtDocument::GetConstructor() {
-  if (!constructorInitialized) {
-    constructorInitialized = true;
+  if (constructor.IsEmpty()) {
     // Create constructor template
     Local<FunctionTemplate> constructorTemplate = NanNew<FunctionTemplate>(New);
     constructorTemplate->SetClassName(NanNew<String>("HdtDocument"));
@@ -48,13 +47,11 @@ const Persistent<Function>& HdtDocument::GetConstructor() {
                            NanNew<FunctionTemplate>(SearchTriples)->GetFunction());
     prototypeTemplate->Set(NanNew<String>("close"),
                            NanNew<FunctionTemplate>(Close) ->GetFunction());
-    prototypeTemplate->SetAccessor(NanNew<String>("closed"), ClosedGetter, NULL);
+    prototypeTemplate->SetAccessor(NanNew<String>("closed"), Closed, NULL);
     NanAssignPersistent(constructor, constructorTemplate->GetFunction());
   }
   return constructor;
 }
-Persistent<Function> HdtDocument::constructor;
-bool HdtDocument::constructorInitialized = false;
 
 
 
@@ -65,7 +62,7 @@ class CreateWorker : public NanAsyncWorker {
   HDT* hdt;
 
 public:
-  CreateWorker(char* filename, NanCallback *callback)
+  CreateWorker(const char* filename, NanCallback *callback)
     : NanAsyncWorker(callback), filename(filename), hdt(NULL) { };
 
   void Execute() {
@@ -75,11 +72,10 @@ public:
 
   void HandleOKCallback() {
     NanScope();
-    // Create new HDT document
+    // Create a new HdtDocument
     Local<Object> newDocument = NanNew(HdtDocument::GetConstructor())->NewInstance();
-    HdtDocument* hdtDocument = HdtDocument::Unwrap<HdtDocument>(newDocument);
-    hdtDocument->Init(hdt);
-    // Send new HdtDocument object (or error) through the callback
+    new HdtDocument(newDocument, hdt);
+    // Send the new HdtDocument through the callback
     const unsigned argc = 2;
     Handle<Value> argv[argc] = { NanNull(), newDocument };
     callback->Call(argc, argv);
@@ -240,7 +236,7 @@ NAN_METHOD(HdtDocument::Close) {
 
 
 // Gets the version of the module.
-NAN_PROPERTY_GETTER(HdtDocument::ClosedGetter) {
+NAN_PROPERTY_GETTER(HdtDocument::Closed) {
   NanScope();
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(args.This());
   NanReturnValue(NanNew<Boolean>(!hdtDocument->hdt));
