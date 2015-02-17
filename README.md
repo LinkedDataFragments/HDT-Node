@@ -71,6 +71,21 @@ hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
 });
 ```
 
+### Searching literals containing a substring
+In an HDT file that was [generated with an FM index](https://github.com/LinkedDataFragments/hdt-cpp/blob/master/hdt-lib/presets/fmindex.hdtcfg),
+you can search for literals that contain a certain substring.
+
+```JavaScript
+hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
+  hdtDocument.searchLiterals('b', { offset: 0, limit: 5 },
+    function (error, literals, totalCount) {
+      console.log('Approximately ' + totalCount + ' literals contain the pattern.');
+      literals.forEach(function (literal) { console.log(literal); });
+      hdtDocument.close();
+    });
+});
+```
+
 ## Standalone utility
 The standalone utility `hdt` allows you to query HDT files from the command line.
 <br>
