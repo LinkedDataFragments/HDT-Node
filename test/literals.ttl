@@ -1,0 +1,9 @@
+<s> <p> "a".
+<s> <p> "a"@en.
+<s> <p> "a"^^<bcd>.
+<s> <p> "abc".
+<s> <p> "abc"@en.
+<s> <p> "abc"^^<bcd>.
+<s> <p> "bc".
+<s> <p> "bc"@en.
+<s> <p> "bc"^^<bcd>.

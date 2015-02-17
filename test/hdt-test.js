@@ -73,7 +73,7 @@ describe('hdt', function () {
     before(function (done) {
       hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
         document = hdtDocument;
-        done();
+        done(error);
       });
     });
     after(function (done) {
@@ -502,9 +502,9 @@ describe('hdt', function () {
     describe('being closed', function () {
       var self = {}, callbackThis, callbackArgs;
       before(function (done) {
-        document.close(function () {
+        document.close(function (error) {
           callbackThis = this, callbackArgs = arguments;
-          done();
+          done(error);
         }, self);
       });
 
@@ -519,6 +519,159 @@ describe('hdt', function () {
     });
   });
 
+  describe('An HDT document without a literal dictionary', function () {
+    var document;
+    before(function (done) {
+      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+        document = hdtDocument;
+        done(error);
+      });
+    });
+    after(function (done) {
+      document.close(done);
+    });
+
+    describe('being searched for literals', function () {
+      it('should throw an error', function (done) {
+        document.searchLiterals('abc', function (error) {
+          this.should.equal(document);
+          error.should.be.an.instanceOf(Error);
+          error.message.should.equal('The HDT document does not support literal search');
+          done();
+        });
+      });
+    });
+  });
+
+  describe('An HDT document with a literal dictionary', function () {
+    var document;
+    before(function (done) {
+      hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
+        document = hdtDocument;
+        done(error);
+      });
+    });
+    after(function (done) {
+      document.close(done);
+    });
+
+    describe('being searched', function () {
+      describe('for the empty literal', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('',
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return the empty array', function () {
+          literals.should.eql([]);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(0);
+        });
+      });
+
+      describe('for the literal "a"', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('a',
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return literals containing "a"', function () {
+          literals.should.eql(['"a"', '"a"@en', '"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(6);
+        });
+      });
+
+      describe('for the literal "b"', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('b',
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return literals containing "b" (with duplicates)', function () {
+          // The duplicates below occur because the substring matches multiple times
+          literals.should.eql(['"a"^^bcd', '"abc"', '"abc"@en', '"bc"@en', '"bc"^^bcd',
+                               '"abc"^^bcd', '"bc"^^bcd', '"bc"', '"abc"^^bcd']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for the literal "b" with a limit', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('b', { limit: 2 },
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return literals containing "b" (with duplicates)', function () {
+          literals.should.eql(['"a"^^bcd', '"abc"']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for the literal "b" with an offset', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('b', { offset: 5 },
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return literals containing "b" (with duplicates)', function () {
+          literals.should.eql(['"abc"^^bcd', '"bc"^^bcd', '"bc"', '"abc"^^bcd']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for the literal "b" with a very large offset', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('b', { offset: 5000 },
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return the empty array', function () {
+          literals.should.eql([]);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+    });
+
+    describe('for the literal "b" with an offset and a limit', function () {
+        var literals, totalCount;
+        before(function (done) {
+          document.searchLiterals('b', { offset: 5, limit: 2 },
+            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        });
+
+        it('should return literals containing "b" (with duplicates)', function () {
+          literals.should.eql(['"abc"^^bcd', '"bc"^^bcd']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+  });
+
   describe('A closed HDT document', function () {
     var document;
     before(function (done) {
@@ -528,9 +681,20 @@ describe('hdt', function () {
       });
     });
 
-    describe('being searched', function () {
+    describe('being searched for triples', function () {
       it('should throw an error', function (done) {
         document.searchTriples(null, null, null, function (error) {
+          this.should.equal(document);
+          error.should.be.an.instanceOf(Error);
+          error.message.should.equal('The HDT document cannot be read because it is closed');
+          done();
+        });
+      });
+    });
+
+    describe('being searched for literals', function () {
+      it('should throw an error', function (done) {
+        document.searchLiterals('abc', function (error) {
           this.should.equal(document);
           error.should.be.an.instanceOf(Error);
           error.message.should.equal('The HDT document cannot be read because it is closed');

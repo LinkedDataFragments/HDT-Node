@@ -1,5 +1,10 @@
+#include <node.h>
+#include <nan.h>
 #include <assert.h>
 #include <vector>
+#include <HDTManager.hpp>
+#include <HDTVocabulary.hpp>
+#include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
 
 using namespace v8;
@@ -11,8 +16,11 @@ using namespace hdt;
 
 
 // Creates a new HDT document.
-HdtDocument::HdtDocument(const Local<Object>& handle, HDT* hdt) : hdt(hdt) {
+HdtDocument::HdtDocument(const Local<Object>& handle, HDT* hdt) : hdt(hdt), features(0) {
   this->Wrap(handle);
+  // Determine supported features
+  if (hdt->getDictionary()->getType() == HDTVocabulary::DICTIONARY_TYPE_LITERAL)
+    features |= LiteralSearch;
 }
 
 // Deletes the HDT document.
@@ -45,6 +53,8 @@ const Persistent<Function>& HdtDocument::GetConstructor() {
     Local<ObjectTemplate> prototypeTemplate = constructorTemplate->PrototypeTemplate();
     prototypeTemplate->Set(NanNew<String>("_searchTriples"),
                            NanNew<FunctionTemplate>(SearchTriples)->GetFunction());
+    prototypeTemplate->Set(NanNew<String>("_searchLiterals"),
+                           NanNew<FunctionTemplate>(SearchLiterals)->GetFunction());
     prototypeTemplate->Set(NanNew<String>("close"),
                            NanNew<FunctionTemplate>(Close) ->GetFunction());
     prototypeTemplate->SetAccessor(NanNew<String>("closed"), Closed, NULL);
@@ -97,7 +107,7 @@ NAN_METHOD(HdtDocument::Create) {
 /******** HdtDocument#_searchTriples ********/
 
 class SearchTriplesWorker : public NanAsyncWorker {
-  HDT* hdt;
+  HdtDocument* document;
   // JavaScript function arguments
   string subject, predicate, object;
   uint32_t offset, limit;
@@ -105,20 +115,20 @@ class SearchTriplesWorker : public NanAsyncWorker {
   // Callback return values
   vector<TripleID> triples;
   map<unsigned int, string> subjects, predicates, objects;
-  size_t totalCount;
+  uint32_t totalCount;
 
 public:
-  SearchTriplesWorker(HDT* hdt, char* subject, char* predicate, char* object,
+  SearchTriplesWorker(HdtDocument* document, char* subject, char* predicate, char* object,
                       uint32_t offset, uint32_t limit, NanCallback* callback, Local<Object> self)
     : NanAsyncWorker(callback),
-      hdt(hdt), subject(subject), predicate(predicate), object(object),
+      document(document), subject(subject), predicate(predicate), object(object),
       offset(offset), limit(limit), totalCount(0) {
     SaveToPersistent("self", self);
   };
 
   void Execute() {
     // Prepare the triple pattern
-    Dictionary* dict = hdt->getDictionary();
+    Dictionary* dict = document->GetHDT()->getDictionary();
     TripleString triple(subject, predicate, toHdtLiteral(object));
     TripleID tripleId;
     dict->tripleStringtoTripleID(triple, tripleId);
@@ -127,7 +137,7 @@ public:
         (object[0]    && !tripleId.getObject()))   return;
 
     // Estimate the total number of triples
-    IteratorTripleID* it = hdt->getTriples()->search(tripleId);
+    IteratorTripleID* it = document->GetHDT()->getTriples()->search(tripleId);
     totalCount = it->estimatedNumResults();
 
     // Go to the right offset
@@ -188,6 +198,12 @@ public:
     Handle<Value> argv[argc] = { NanNull(), triplesArray, NanNew<Integer>((uint32_t)totalCount) };
     callback->Call(GetFromPersistent("self"), argc, argv);
   }
+
+  void HandleErrorCallback() {
+    NanScope();
+    Local<Value> argv[] = { Exception::Error(NanNew<String>(ErrorMessage())) };
+    callback->Call(GetFromPersistent("self"), 1, argv);
+  }
 };
 
 // Searches for a triple pattern in the document.
@@ -197,7 +213,7 @@ NAN_METHOD(HdtDocument::SearchTriples) {
   assert(args.Length() == 7);
 
   // Create asynchronous task
-  NanAsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(args.This())->hdt,
+  NanAsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(args.This()),
     *NanUtf8String(args[0]), *NanUtf8String(args[1]), *NanUtf8String(args[2]),
     args[3]->Uint32Value(), args[4]->Uint32Value(),
     new NanCallback(args[5].As<Function>()),
@@ -207,8 +223,86 @@ NAN_METHOD(HdtDocument::SearchTriples) {
 
 
 
-/******** HdtDocument#close ********/
+/******** HdtDocument#_searchLiterals ********/
 
+class SearchLiteralsWorker : public NanAsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  string substring;
+  uint32_t offset, limit;
+  Persistent<Object> self;
+  // Callback return values
+  vector<string> literals;
+  uint32_t totalCount;
+
+public:
+  SearchLiteralsWorker(HdtDocument* document, char* substring, uint32_t offset, uint32_t limit,
+                       NanCallback* callback, Local<Object> self)
+    : NanAsyncWorker(callback), document(document),
+      substring(substring), offset(offset), limit(limit), totalCount(0) {
+    SaveToPersistent("self", self);
+  };
+
+  void Execute() {
+    if (!document->Supports(LiteralSearch)) {
+      SetErrorMessage("The HDT document does not support literal search");
+      return;
+    }
+    // Find matching literals
+    LiteralDictionary *dict = (LiteralDictionary*)(document->GetHDT()->getDictionary());
+    uint32_t* literalIds = NULL;
+    totalCount = dict->substringToId((unsigned char*)substring.c_str(),
+                                     substring.length(), &literalIds);
+    // Select the desired range
+    if (offset < totalCount) {
+      uint32_t *current = literalIds + offset,
+               *end     = current + min(limit, totalCount - offset);
+      while (current < end) {
+        string literal(dict->idToString(*(current++), OBJECT));
+        literals.push_back(fromHdtLiteral(literal));
+      }
+    }
+    delete literalIds;
+  }
+
+  void HandleOKCallback() {
+    NanScope();
+    // Convert the literals into a JavaScript array
+    uint32_t count = 0;
+    Local<Array> literalsArray = NanNew<Array>(literals.size());
+    for (vector<string>::const_iterator it = literals.begin(); it != literals.end(); it++)
+      literalsArray->Set(count++, NanNew<String>(*it));
+
+    // Send the JavaScript array and estimated total count through the callback
+    const unsigned argc = 3;
+    Handle<Value> argv[argc] = { NanNull(), literalsArray, NanNew<Integer>((uint32_t)totalCount) };
+    callback->Call(GetFromPersistent("self"), argc, argv);
+  }
+
+  void HandleErrorCallback() {
+    NanScope();
+    Local<Value> argv[] = { Exception::Error(NanNew<String>(ErrorMessage())) };
+    callback->Call(GetFromPersistent("self"), 1, argv);
+  }
+};
+
+// Searches for a triple pattern in the document.
+// JavaScript signature: HdtDocument#_searchLiterals(substring, offset, limit, callback, self)
+NAN_METHOD(HdtDocument::SearchLiterals) {
+  NanScope();
+  assert(args.Length() == 5);
+
+  // Create asynchronous task
+  NanAsyncQueueWorker(new SearchLiteralsWorker(Unwrap<HdtDocument>(args.This()),
+    *NanUtf8String(args[0]), args[1]->Uint32Value(), args[2]->Uint32Value(),
+    new NanCallback(args[3].As<Function>()),
+    args[4]->IsObject() ? args[4].As<Object>() : args.This()));
+  NanReturnUndefined();
+}
+
+
+
+/******** HdtDocument#close ********/
 
 // Closes the document, disabling all further operations.
 // JavaScript signature: HdtDocument#close([callback], [self])
@@ -220,7 +314,7 @@ NAN_METHOD(HdtDocument::Close) {
 
   // Call the callback if one was passed
   if (args.Length() >= 1 && args[0]->IsFunction()) {
-    const Local<Function> callback = Local<Function>::Cast(args[0]);
+    const Local<Function> callback = args[0].As<Function>();
     const Local<Object> self = args.Length() >= 2 && args[1]->IsObject() ?
                                args[1].As<Object>() : NanGetCurrentContext()->Global();
     const unsigned argc = 1;
