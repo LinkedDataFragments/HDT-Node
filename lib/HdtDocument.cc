@@ -1,6 +1,7 @@
 #include <node.h>
 #include <nan.h>
 #include <assert.h>
+#include <set>
 #include <vector>
 #include <HDTManager.hpp>
 #include <HDTVocabulary.hpp>
@@ -253,16 +254,20 @@ public:
     uint32_t* literalIds = NULL;
     totalCount = dict->substringToId((unsigned char*)substring.c_str(),
                                      substring.length(), &literalIds);
+    // Find unique values
+    const set<uint32_t> uniqueIds(literalIds, literalIds + totalCount);
+    totalCount = uniqueIds.size();
+    delete literalIds;
+
     // Select the desired range
     if (offset < totalCount) {
-      uint32_t *current = literalIds + offset,
-               *end     = current + min(limit, totalCount - offset);
-      while (current < end) {
-        string literal(dict->idToString(*(current++), OBJECT));
+      set<uint32_t>::const_iterator it = uniqueIds.begin();
+      advance(it, offset);
+      while (it != uniqueIds.end() && literals.size() < limit) {
+        string literal(dict->idToString(*(it++), OBJECT));
         literals.push_back(fromHdtLiteral(literal));
       }
     }
-    delete literalIds;
   }
 
   void HandleOKCallback() {

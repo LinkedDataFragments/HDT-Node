@@ -595,14 +595,13 @@ describe('hdt', function () {
             function (error, l, c) { literals = l, totalCount = c; done(error); });
         });
 
-        it('should return literals containing "b" (with duplicates)', function () {
-          // The duplicates below occur because the substring matches multiple times
-          literals.should.eql(['"a"^^bcd', '"abc"', '"abc"@en', '"bc"@en', '"bc"^^bcd',
-                               '"abc"^^bcd', '"bc"^^bcd', '"bc"', '"abc"^^bcd']);
+        it('should return literals containing "b"', function () {
+          literals.should.eql(['"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd',
+                               '"bc"', '"bc"@en', '"bc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(7);
         });
       });
 
@@ -613,28 +612,28 @@ describe('hdt', function () {
             function (error, l, c) { literals = l, totalCount = c; done(error); });
         });
 
-        it('should return literals containing "b" (with duplicates)', function () {
+        it('should return literals containing "b"', function () {
           literals.should.eql(['"a"^^bcd', '"abc"']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(7);
         });
       });
 
       describe('for the literal "b" with an offset', function () {
         var literals, totalCount;
         before(function (done) {
-          document.searchLiterals('b', { offset: 5 },
+          document.searchLiterals('b', { offset: 4 },
             function (error, l, c) { literals = l, totalCount = c; done(error); });
         });
 
-        it('should return literals containing "b" (with duplicates)', function () {
-          literals.should.eql(['"abc"^^bcd', '"bc"^^bcd', '"bc"', '"abc"^^bcd']);
+        it('should return literals containing "b"', function () {
+          literals.should.eql(['"bc"', '"bc"@en', '"bc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(7);
         });
       });
 
@@ -650,7 +649,7 @@ describe('hdt', function () {
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(7);
         });
       });
     });
@@ -658,16 +657,16 @@ describe('hdt', function () {
     describe('for the literal "b" with an offset and a limit', function () {
         var literals, totalCount;
         before(function (done) {
-          document.searchLiterals('b', { offset: 5, limit: 2 },
+          document.searchLiterals('b', { offset: 4, limit: 2 },
             function (error, l, c) { literals = l, totalCount = c; done(error); });
         });
 
-        it('should return literals containing "b" (with duplicates)', function () {
-          literals.should.eql(['"abc"^^bcd', '"bc"^^bcd']);
+        it('should return literals containing "b"', function () {
+          literals.should.eql(['"bc"', '"bc"@en']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(7);
         });
       });
   });
