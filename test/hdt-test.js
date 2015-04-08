@@ -556,6 +556,40 @@ describe('hdt', function () {
     });
 
     describe('being searched', function () {
+      describe('for an existing subject', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.searchTriples('s', null, null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(9);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for a non-existing subject', function () {
+        var triples, totalCount;
+        before(function (done) {
+          document.searchTriples('x', null, null,
+            function (error, t, c) { triples = t; totalCount = c; done(error); });
+        });
+
+        it('should return an array without matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(0);
+        });
+
+        it('should estimate the total count as 0', function () {
+          totalCount.should.equal(0);
+        });
+      });
+
       describe('for the empty literal', function () {
         var literals, totalCount;
         before(function (done) {
