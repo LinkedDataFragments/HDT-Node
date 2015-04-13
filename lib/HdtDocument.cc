@@ -249,25 +249,19 @@ public:
       SetErrorMessage("The HDT document does not support literal search");
       return;
     }
-    // Find matching literals
+    // Find matching literal IDs
     LiteralDictionary *dict = (LiteralDictionary*)(document->GetHDT()->getDictionary());
     uint32_t* literalIds = NULL;
-    totalCount = dict->substringToId((unsigned char*)substring.c_str(),
-                                     substring.length(), &literalIds);
-    // Find unique values
-    const set<uint32_t> uniqueIds(literalIds, literalIds + totalCount);
-    totalCount = uniqueIds.size();
-    delete literalIds;
+    uint32_t  literalCount = 0;
+    totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
+                                     offset, limit, false, &literalIds, &literalCount);
 
-    // Select the desired range
-    if (offset < totalCount) {
-      set<uint32_t>::const_iterator it = uniqueIds.begin();
-      advance(it, offset);
-      while (it != uniqueIds.end() && literals.size() < limit) {
-        string literal(dict->idToString(*(it++), OBJECT));
-        literals.push_back(fromHdtLiteral(literal));
-      }
+    // Convert the literal IDs to strings
+    for (uint32_t *id = literalIds, *end = literalIds + literalCount; id != end; id++) {
+      string literal(dict->idToString(*id, OBJECT));
+      literals.push_back(fromHdtLiteral(literal));
     }
+    delete literalIds;
   }
 
   void HandleOKCallback() {

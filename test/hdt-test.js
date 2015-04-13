@@ -629,13 +629,13 @@ describe('hdt', function () {
             function (error, l, c) { literals = l, totalCount = c; done(error); });
         });
 
-        it('should return literals containing "b"', function () {
-          literals.should.eql(['"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd',
-                               '"bc"', '"bc"@en', '"bc"^^bcd']);
+        it('should return literals containing "b" (with duplicates for multiple matches)', function () {
+          literals.should.eql(['"abc"', '"bc"', '"abc"@en', '"bc"@en',
+                               '"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(7);
+          totalCount.should.equal(9);
         });
       });
 
@@ -647,11 +647,11 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"a"^^bcd', '"abc"']);
+          literals.should.eql(['"abc"', '"bc"']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(7);
+          totalCount.should.equal(9);
         });
       });
 
@@ -663,11 +663,11 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"', '"bc"@en', '"bc"^^bcd']);
+          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(7);
+          totalCount.should.equal(9);
         });
       });
 
@@ -683,7 +683,7 @@ describe('hdt', function () {
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(7);
+          totalCount.should.equal(9);
         });
       });
     });
@@ -696,11 +696,11 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"', '"bc"@en']);
+          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(7);
+          totalCount.should.equal(9);
         });
       });
   });
