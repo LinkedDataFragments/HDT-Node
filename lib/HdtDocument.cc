@@ -150,7 +150,7 @@ public:
 
     // Add matching triples to the result vector
     if (!offset) {
-      while (limit-- && it->hasNext()) {
+      while (it->hasNext() && (!limit || triples.size() < limit)) {
         TripleID& triple = *it->next();
         triples.push_back(triple);
         if (!subjects.count(triple.getSubject())) {
