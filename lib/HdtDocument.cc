@@ -57,11 +57,17 @@ const Persistent<Function>& HdtDocument::GetConstructor() {
     prototypeTemplate->Set(NanNew<String>("_searchLiterals"),
                            NanNew<FunctionTemplate>(SearchLiterals)->GetFunction());
     prototypeTemplate->Set(NanNew<String>("close"),
-                           NanNew<FunctionTemplate>(Close) ->GetFunction());
+                           NanNew<FunctionTemplate>(Close)->GetFunction());
     prototypeTemplate->SetAccessor(NanNew<String>("closed"), Closed, NULL);
     NanAssignPersistent(constructor, constructorTemplate->GetFunction());
   }
   return constructor;
+}
+
+// Gets the HdtDocument constructor.
+NAN_PROPERTY_GETTER(HdtDocument::Constructor) {
+  NanScope();
+  NanReturnValue(GetConstructor());
 }
 
 
@@ -328,7 +334,7 @@ NAN_METHOD(HdtDocument::Close) {
 /******** HdtDocument#closed ********/
 
 
-// Gets the version of the module.
+// Gets a boolean indicating whether the document is closed.
 NAN_PROPERTY_GETTER(HdtDocument::Closed) {
   NanScope();
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(args.This());
