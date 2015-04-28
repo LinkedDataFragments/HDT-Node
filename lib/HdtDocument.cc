@@ -267,7 +267,7 @@ public:
       string literal(dict->idToString(*id, OBJECT));
       literals.push_back(fromHdtLiteral(literal));
     }
-    delete literalIds;
+    delete[] literalIds;
   }
 
   void HandleOKCallback() {
