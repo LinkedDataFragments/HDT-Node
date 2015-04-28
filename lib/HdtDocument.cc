@@ -67,7 +67,7 @@ const Persistent<Function>& HdtDocument::GetConstructor() {
 // Gets the HdtDocument constructor.
 NAN_PROPERTY_GETTER(HdtDocument::Constructor) {
   NanScope();
-  NanReturnValue(GetConstructor());
+  NanReturnValue(NanNew(GetConstructor()));
 }
 
 
