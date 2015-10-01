@@ -650,6 +650,7 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "a"', function () {
+          literals.sort();
           literals.should.eql(['"a"', '"a"@en', '"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd']);
         });
 
@@ -666,8 +667,9 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b" (with duplicates for multiple matches)', function () {
-          literals.should.eql(['"abc"', '"bc"', '"abc"@en', '"bc"@en',
-                               '"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
+          literals.sort();
+          literals.should.eql(['"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd', '"abc"^^bcd',
+                               '"bc"', '"bc"@en', '"bc"^^bcd', '"bc"^^bcd' ]);
         });
 
         it('should estimate the total count', function () {
@@ -683,6 +685,7 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
+          literals.sort();
           literals.should.eql(['"abc"', '"bc"']);
         });
 
@@ -699,7 +702,8 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
+          literals.sort();
+          literals.should.eql(['"a"^^bcd', '"abc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"bc"^^bcd' ]);
         });
 
         it('should estimate the total count', function () {
@@ -732,7 +736,8 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
+          literals.sort();
+          literals.should.eql(['"abc"^^bcd', '"bc"^^bcd']);
         });
 
         it('should estimate the total count', function () {

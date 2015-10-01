@@ -20,7 +20,9 @@ using namespace hdt;
 HdtDocument::HdtDocument(const Local<Object>& handle, HDT* hdt) : hdt(hdt), features(0) {
   this->Wrap(handle);
   // Determine supported features
-  if (hdt->getDictionary()->getType() == HDTVocabulary::DICTIONARY_TYPE_LITERAL)
+  const string dictionaryType = hdt->getDictionary()->getType();
+  if (dictionaryType == HDTVocabulary::DICTIONARY_TYPE_LITERAL ||
+      dictionaryType == HDTVocabulary::DICTIONARY_TYPE_CASE_INSENSITIVE_LITERAL)
     features |= LiteralSearch;
 }
 
@@ -247,6 +249,7 @@ public:
     uint32_t* literalIds = NULL;
     uint32_t  literalCount = 0;
     totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
+                                     true, // case-insensitive
                                      offset, limit, false, &literalIds, &literalCount);
 
     // Convert the literal IDs to strings
