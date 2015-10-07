@@ -54,6 +54,8 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "close",           Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
+                     Nan::New("_features").ToLocalChecked(), Features);
+    Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("closed").ToLocalChecked(), Closed);
     // Set constructor
     constructor.Reset(constructorTemplate->GetFunction());
@@ -284,6 +286,18 @@ NAN_METHOD(HdtDocument::SearchLiterals) {
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
     new Nan::Callback(info[3].As<Function>()),
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+}
+
+
+
+
+/******** HdtDocument#features ********/
+
+
+// Gets a bitvector indicating the supported features.
+NAN_PROPERTY_GETTER(HdtDocument::Features) {
+  HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
+  info.GetReturnValue().Set(Nan::New<Integer>(hdtDocument->features));
 }
 
 

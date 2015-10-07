@@ -80,6 +80,24 @@ describe('hdt', function () {
       document.close(done);
     });
 
+    describe('asked for supported features', function () {
+      it('should return an object', function () {
+        document.features.should.be.an.instanceof(Object);
+      });
+
+      it('should support searchTriples', function () {
+        document.features.searchTriples.should.be.true;
+      });
+
+      it('should support countTriples', function () {
+        document.features.countTriples.should.be.true;
+      });
+
+      it('should not support searchLiterals', function () {
+        document.features.searchLiterals.should.be.false;
+      });
+    });
+
     describe('being searched', function () {
       describe('without self value', function () {
         it('should invoke the callback with the HDT document as `this`', function (done) {
@@ -553,6 +571,24 @@ describe('hdt', function () {
     });
     after(function (done) {
       document.close(done);
+    });
+
+    describe('asked for supported features', function () {
+      it('should return an object', function () {
+        document.features.should.be.an.instanceof(Object);
+      });
+
+      it('should support searchTriples', function () {
+        document.features.searchTriples.should.be.true;
+      });
+
+      it('should support countTriples', function () {
+        document.features.countTriples.should.be.true;
+      });
+
+      it('should support searchLiterals', function () {
+        document.features.searchLiterals.should.be.true;
+      });
     });
 
     describe('being searched', function () {
