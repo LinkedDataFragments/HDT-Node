@@ -36,4 +36,4 @@ var parts = /^\s*<?([^\s>]*)>?\s*<?([^\s>]*)>?\s*<?([^]*?)>?\s*$/.exec(query),
     subject   = parts[1][0] !== '?' && parts[1] || null,
     predicate = parts[2][0] !== '?' && parts[2] || null,
     object    = parts[3][0] !== '?' && parts[3] || null;
-var writer = new require('n3').Writer(process.stdout, { format: format });
+var writer = new require('n3').Writer(process.stdout, { format: format, end: false });
