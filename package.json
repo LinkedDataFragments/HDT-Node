@@ -25,21 +25,21 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha",
-    "hint": "node_modules/jshint/bin/jshint lib/*.js test/*.js bin/*"
+    "test": "mocha",
+    "hint": "jshint lib/*.js test/*.js bin/*"
   },
   "dependencies": {
     "minimist": "^1.1.0",
     "n3": "^0.4.0",
-    "nan": "^2.0.8"
+    "nan": "^2.3.5"
   },
   "devDependencies": {
-    "should": "4.0.x",
-    "mocha": "1.21.x",
-    "jshint": "2.1.x",
-    "precommit-hook": "1.0.x"
+    "jshint": "^2.9.2",
+    "mocha": "^2.5.3",
+    "precommit-hook": "^3.0.0",
+    "should": "^9.0.2"
   },
-  "precommit": [
+  "pre-commit": [
     "hint",
     "test"
   ]
