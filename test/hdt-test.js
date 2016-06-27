@@ -313,8 +313,8 @@ describe('hdt', function () {
                                   object:    'http://example.org/o002' });
         });
 
-        it('should estimate the total count as 1', function () {
-          totalCount.should.equal(1);
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
         });
       });
 
@@ -366,8 +366,8 @@ describe('hdt', function () {
                                    object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
         });
 
-        it('should estimate the total count as 1', function () {
-          totalCount.should.equal(1);
+        it('should estimate the total count as 12', function () {
+          totalCount.should.equal(12);
         });
       });
 
@@ -475,8 +475,8 @@ describe('hdt', function () {
                                 function (error, c) { totalCount = c; done(error); });
         });
 
-        it('should return 1', function () {
-          totalCount.should.equal(1);
+        it('should return 10', function () {
+          totalCount.should.equal(10);
         });
       });
 
@@ -487,8 +487,8 @@ describe('hdt', function () {
                                 function (error, c) { totalCount = c; done(error); });
         });
 
-        it('should return 1', function () {
-          totalCount.should.equal(1);
+        it('should return 12', function () {
+          totalCount.should.equal(12);
         });
       });
 
