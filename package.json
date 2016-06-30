@@ -26,7 +26,9 @@
   },
   "scripts": {
     "test": "rm test/*.hdt.index 2> /dev/null; mocha",
-    "hint": "jshint lib/*.js test/*.js bin/*"
+    "hint": "jshint lib/*.js test/*.js bin/*",
+    "lint": "jshint .",
+    "validate": "npm ls"
   },
   "dependencies": {
     "minimist": "^1.1.0",

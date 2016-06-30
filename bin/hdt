@@ -21,10 +21,10 @@ hdt.fromFile(hdtFile, function (error, hdtDocument) {
   if (error) console.error(error.message), process.exit(1);
   // Search the HDT document for the given pattern
   hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit },
-    function (error, triples, totalCount) {
+    function (error, triples, totalCount, exactCount) {
       // Write all matching triples
       if (error) console.error(error.message), process.exit(1);
-      process.stdout.write('# Estimated total matches: ' + totalCount + '\n');
+      process.stdout.write('# ' + (exactCount ? 'Exact' : 'Estimated') + ' total matches: ' + totalCount + '\n');
       writer.addTriples(triples);
       writer.end();
       hdtDocument.close();
