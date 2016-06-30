@@ -6,6 +6,7 @@
 #include <HDTManager.hpp>
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
+#include <HDTEnums.hpp>
 #include "HdtDocument.h"
 
 using namespace v8;
@@ -114,6 +115,7 @@ class SearchTriplesWorker : public Nan::AsyncWorker {
   vector<TripleID> triples;
   map<unsigned int, string> subjects, predicates, objects;
   uint32_t totalCount;
+  bool exactCount;
 
 public:
   SearchTriplesWorker(HdtDocument* document, char* subject, char* predicate, char* object,
@@ -137,6 +139,7 @@ public:
     // Estimate the total number of triples
     IteratorTripleID* it = document->GetHDT()->getTriples()->search(tripleId);
     totalCount = it->estimatedNumResults();
+    exactCount = it->numResultEstimation() == EXACT;
 
     // Go to the right offset
     if (it->canGoTo())
@@ -192,8 +195,9 @@ public:
     }
 
     // Send the JavaScript array and estimated total count through the callback
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), triplesArray, Nan::New<Integer>((uint32_t)totalCount) };
+    const unsigned argc = 4;
+    Local<Value> argv[argc] = { Nan::Null(), triplesArray,
+                                Nan::New<Integer>((uint32_t)totalCount), Nan::New<Boolean>((bool)exactCount) };
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
 
@@ -228,6 +232,7 @@ class SearchLiteralsWorker : public Nan::AsyncWorker {
   // Callback return values
   vector<string> literals;
   uint32_t totalCount;
+  bool exactCount;
 
 public:
   SearchLiteralsWorker(HdtDocument* document, char* substring, uint32_t offset, uint32_t limit,
@@ -248,6 +253,7 @@ public:
     uint32_t  literalCount = 0;
     totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
                                      offset, limit, false, &literalIds, &literalCount);
+    exactCount = true;
 
     // Convert the literal IDs to strings
     for (uint32_t *id = literalIds, *end = literalIds + literalCount; id != end; id++) {
@@ -266,8 +272,9 @@ public:
       Nan::Set(literalsArray, count++, Nan::New(*it).ToLocalChecked());
 
     // Send the JavaScript array and estimated total count through the callback
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), literalsArray, Nan::New<Integer>((uint32_t)totalCount) };
+    const unsigned argc = 4;
+    Local<Value> argv[argc] = { Nan::Null(), literalsArray,
+                                Nan::New<Integer>((uint32_t)totalCount), Nan::New<Boolean>((bool)exactCount) };
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
 
