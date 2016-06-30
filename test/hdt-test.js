@@ -136,10 +136,10 @@ describe('hdt', function () {
       });
 
       describe('with pattern null null null', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -153,13 +153,17 @@ describe('hdt', function () {
         it('should estimate the total count as 132', function () {
           totalCount.should.equal(132);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null null, offset 0 and limit 10', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, null, { offset: 0, limit: 10 },
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -173,13 +177,17 @@ describe('hdt', function () {
         it('should estimate the total count as 132', function () {
           totalCount.should.equal(132);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null null, offset 10 and limit 5', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, null, { offset: 10, limit: 5 },
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -193,13 +201,17 @@ describe('hdt', function () {
         it('should estimate the total count as 132', function () {
           totalCount.should.equal(132);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null null, offset 200 and limit 5', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, null, { offset: 200, limit: 5 },
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -213,10 +225,10 @@ describe('hdt', function () {
       });
 
       describe('with pattern ex:s2 null null', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples('http://example.org/s2', null, null,
-                          function (error, t, c) { triples = t; totalCount = c; done(error); });
+                          function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -233,13 +245,17 @@ describe('hdt', function () {
         it('should estimate the total count as 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples('http://example.org/s2', null, null, { offset: 2, limit: 1 },
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -253,13 +269,17 @@ describe('hdt', function () {
         it('should estimate the total count as 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern ex:s2 null null, offset 200 and limit 1', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples('http://example.org/s2', null, null, { offset: 200, limit: 1 },
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -270,13 +290,17 @@ describe('hdt', function () {
         it('should estimate the total count as 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern ex:s2 ?p ?o', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples('http://example.org/s2', '?p', '?o',
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -293,13 +317,17 @@ describe('hdt', function () {
         it('should estimate the total count as 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null ex:p2 null', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, 'http://example.org/p2', null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -316,13 +344,17 @@ describe('hdt', function () {
         it('should estimate the total count as 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null ex:p3 null', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, 'http://example.org/p3', null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -369,13 +401,17 @@ describe('hdt', function () {
         it('should estimate the total count as 12', function () {
           totalCount.should.equal(12);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null "a"^^http://example.org/literal', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, '"a"^^http://example.org/literal',
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -389,13 +425,17 @@ describe('hdt', function () {
         it('should estimate the total count as 1', function () {
           totalCount.should.equal(1);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null ex:o012', function () {
-        var triples, totalCount;
+        var triples, totalCount, hasExactCount;
         before(function (done) {
           document.searchTriples(null, null, 'http://example.org/o012',
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return an array with matches', function () {
@@ -408,6 +448,10 @@ describe('hdt', function () {
 
         it('should estimate the total count as 1', function () {
           totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
         });
       });
     });
@@ -433,86 +477,112 @@ describe('hdt', function () {
       });
 
       describe('with a non-existing pattern', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples('a', null, null,
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 0', function () {
           totalCount.should.equal(0);
         });
+
+        // hasExactCount result is non-deterministic in this case, so we don't expect anything here.
       });
 
       describe('with pattern null null null', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples(null, null, null,
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 132', function () {
           totalCount.should.equal(132);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern ex:s2 null null', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples('http://example.org/s2', null, null,
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 10', function () {
           totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
         });
       });
 
       describe('with pattern null ex:p2 null', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples(null, 'http://example.org/p2', null,
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 10', function () {
           totalCount.should.equal(10);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null ex:p3 null', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples(null, 'http://example.org/p3', null,
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 12', function () {
           totalCount.should.equal(12);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null ex:o012', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples(null, null, 'http://example.org/o012',
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 1', function () {
           totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
         });
       });
 
       describe('with pattern null null "a"^^http://example.org/literal', function () {
-        var totalCount;
+        var totalCount, hasExactCount;
         before(function (done) {
           document.countTriples(null, null, '"a"^^http://example.org/literal',
-                                function (error, c) { totalCount = c; done(error); });
+                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
         });
 
         it('should return 1', function () {
           totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
         });
       });
     });

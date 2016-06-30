@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <set>
 #include <vector>
+#include <HDTEnums.hpp>
 #include <HDTManager.hpp>
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
@@ -114,6 +115,7 @@ class SearchTriplesWorker : public Nan::AsyncWorker {
   vector<TripleID> triples;
   map<unsigned int, string> subjects, predicates, objects;
   uint32_t totalCount;
+  bool hasExactCount;
 
 public:
   SearchTriplesWorker(HdtDocument* document, char* subject, char* predicate, char* object,
@@ -137,6 +139,7 @@ public:
     // Estimate the total number of triples
     IteratorTripleID* it = document->GetHDT()->getTriples()->search(tripleId);
     totalCount = it->estimatedNumResults();
+    hasExactCount = it->numResultEstimation() == EXACT;
 
     // Go to the right offset
     if (it->canGoTo())
@@ -192,8 +195,10 @@ public:
     }
 
     // Send the JavaScript array and estimated total count through the callback
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), triplesArray, Nan::New<Integer>((uint32_t)totalCount) };
+    const unsigned argc = 4;
+    Local<Value> argv[argc] = { Nan::Null(), triplesArray,
+                                Nan::New<Integer>((uint32_t)totalCount),
+                                Nan::New<Boolean>((bool)hasExactCount) };
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
 
@@ -266,8 +271,10 @@ public:
       Nan::Set(literalsArray, count++, Nan::New(*it).ToLocalChecked());
 
     // Send the JavaScript array and estimated total count through the callback
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), literalsArray, Nan::New<Integer>((uint32_t)totalCount) };
+    const unsigned argc = 4;
+    Local<Value> argv[argc] = { Nan::Null(), literalsArray,
+                                Nan::New<Integer>((uint32_t)totalCount),
+                                Nan::New<Boolean>(true) };
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
 
