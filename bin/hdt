@@ -17,7 +17,7 @@ if (args._.length !== 1 || args.h || args.help) {
 
 // Load the HDT file
 var hdt = require('../lib/hdt');
-hdt.fromFile(hdtFile, function (error, hdtDocument) {
+hdt.loadFile(hdtFile, function (error, hdtDocument) {
   if (error) console.error(error.message), process.exit(1);
   // Search the HDT document for the given pattern
   hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit },

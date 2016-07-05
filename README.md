@@ -22,13 +22,13 @@ var hdt = require('hdt');
 ```
 
 ### Opening and closing an HDT document
-Open an HDT document with `hdt.fromFile`,
+Open an HDT document with `hdt.loadFile`,
 which takes filename and callback arguments.
 The HDT document will be passed to the callback.
 Close the document with `close`.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+hdt.loadFile('./test/test.hdt', function (error, hdtDocument) {
   // Don't forget to close the document when you're done
   hdtDocument.close();
 });
@@ -47,7 +47,7 @@ The callback returns an array of triples that match the pattern.
 A third parameter indicates an estimate of the total number of matching triples.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+hdt.loadFile('./test/test.hdt', function (error, hdtDocument) {
   hdtDocument.searchTriples('http://example.org/s1', null, null, { offset: 0, limit: 10 },
     function (error, triples, totalCount) {
       console.log('Approximately ' + totalCount + ' triples match the pattern.');
@@ -62,7 +62,7 @@ Retrieve an estimate of the total number of triples matching a pattern with `co
 which takes subject, predicate, object, and callback arguments.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+hdt.loadFile('./test/test.hdt', function (error, hdtDocument) {
   hdtDocument.countTriples('http://example.org/s1', null, null,
     function (error, totalCount) {
       console.log('Approximately ' + totalCount + ' triples match the pattern.');
@@ -76,7 +76,7 @@ In an HDT file that was [generated with an FM index](https://github.com/LinkedDa
 you can search for literals that contain a certain substring.
 
 ```JavaScript
-hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
+hdt.loadFile('./test/literals.hdt', function (error, hdtDocument) {
   hdtDocument.searchLiterals('b', { offset: 0, limit: 5 },
     function (error, literals, totalCount) {
       console.log('Approximately ' + totalCount + ' literals contain the pattern.');
