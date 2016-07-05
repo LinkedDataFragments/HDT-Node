@@ -25,7 +25,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "rm test/*.hdt.index 2> /dev/null; mocha",
+    "test": "rm test/*-data/*.hdt.index 2> /dev/null; mocha $(find ./test -name '*-test.js') ",
     "hint": "jshint lib/*.js test/*.js bin/*"
   },
   "dependencies": {
