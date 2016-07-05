@@ -65,6 +65,66 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
 }
 
 
+/******** Generate HDT doc from rdf file ********/
+
+class Rdf2HdtWorker : public Nan::AsyncWorker {
+  string fromFile;
+  string toFile;
+  string rdfFormat;
+  HDTSpecification options;
+  HDT* hdt;
+
+public:
+  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, Nan::Callback *callback)
+    : Nan::AsyncWorker(callback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), options(options), hdt(NULL) { };
+
+  void Execute() {
+    try {
+      string baseUri = "<file://"+fromFile+">";
+      //Mapping string to enum. This is also done in the CLI code of the HDT lib
+      //Should move both parts to the HDT enum code in the future for consistency
+      RDFNotation notation = NTRIPLES;
+      if(rdfFormat!="") {
+        if(rdfFormat=="ntriples") {
+          notation = NTRIPLES;
+        } else if(rdfFormat=="nquad") {
+          notation = NQUAD;
+        } else if(rdfFormat=="n3") {
+          notation = N3;
+        } else if(rdfFormat=="turtle") {
+          notation = TURTLE;
+        } else if(rdfFormat=="rdfxml") {
+          notation = XML;
+        } else {
+          throw "ERROR: The RDF input format must be one of: (ntriples, nquad, n3, turtle, rdfxml)";
+        }
+      }
+
+      StdoutProgressListener progress;
+      hdt = HDTManager::generateHDT(fromFile.c_str(), baseUri.c_str(), notation, options, &progress);
+
+      ofstream out;
+      // Save HDT
+      out.open(toFile.c_str(), ios::out | ios::binary | ios::trunc);
+      if(!out.good()){
+        throw "Could not open output file.";
+      }
+      hdt->saveToHDT(out, &progress);
+      out.close();
+    }
+    catch (const char* error) { SetErrorMessage(error); std::cerr << error << std::endl;}
+  }
+
+  //Not returning the HDT doc here. The js layer returns the hdt file instead by calling 'loadFile'
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    const unsigned argc = 1;
+    Local<Value> argv[argc] = { Nan::Null() };
+    callback->Call(argc, argv);
+  }
+};
+
+
 
 /******** createHdtDocument ********/
 
@@ -100,7 +160,33 @@ NAN_METHOD(HdtDocument::Create) {
   Nan::AsyncQueueWorker(new CreateWorker(*Nan::Utf8String(info[0]),
                                          new Nan::Callback(info[1].As<Function>())));
 }
+// Creates a new instance of HdtDocument.
+// JavaScript signature: createHdtDocument(rdfFile, targetFile, specObject, format, callback)
+NAN_METHOD(HdtDocument::Rdf2Hdt) {
+  assert(info.Length() == 5);
 
+  /**
+    convert V8 config object to hdt spec object
+  **/
+  string noConfigFile;
+  HDTSpecification spec(noConfigFile);
+  v8::Local<v8::Object> specObj = Nan::To<v8::Object>(info[2]).ToLocalChecked();
+  if (!specObj.IsEmpty()) {
+    v8::Local<v8::Array> props = specObj->GetOwnPropertyNames();
+    for (uint32_t i=0 ; i < props->Length() ; ++i) {
+      const Local<Value> key = props->Get(i);
+      string keyString = *Nan::Utf8String(key->ToString());
+      string valString = *Nan::Utf8String(specObj->Get(key)->ToString());
+      spec.set(keyString, valString);
+    }
+  }
+
+  Nan::AsyncQueueWorker(new Rdf2HdtWorker(*Nan::Utf8String(info[0]),//inputfile
+                                         *Nan::Utf8String(info[1]),//outputfile
+                                         spec,//config
+                                         *Nan::Utf8String(info[3]),
+                                         new Nan::Callback(info[4].As<Function>())));//complete callback
+}
 
 
 /******** HdtDocument#_searchTriples ********/

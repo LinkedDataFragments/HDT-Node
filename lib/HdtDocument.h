@@ -15,6 +15,7 @@ class HdtDocument : public node::ObjectWrap {
 
   // createHdtDocument(filename, callback)
   static NAN_METHOD(Create);
+  static NAN_METHOD(Rdf2Hdt);
   static const Nan::Persistent<v8::Function>& GetConstructor();
 
   // Accessors
