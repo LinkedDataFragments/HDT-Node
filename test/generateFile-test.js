@@ -83,6 +83,38 @@ describe.skip('generateFile', function () {
         });
       });
     });
+    /**
+    The built-in ntriple parser does not support base IRIs. Disable this test until
+    a better parser is used
+    **/
+    describe.skip('without explicit base IRI', function () {
+      it('should use local filename as base IRI', function (done) {
+        hdt.generateFile('./test/generateFile-data/test.nt', targetHdtFile, {format: 'ntriples'}, function (error, document) {
+          document.searchTriples(null, null, null, function (error, triples, totalCount) {
+            totalCount.should.equal(1);
+            triples.pop().object.indexOf('file://').should.equal(0);
+            document.close();
+            done(error);
+          });
+        });
+      });
+    });
+    /**
+    The built-in ntriple parser does not support base IRIs. Disable this test until
+    a better parser is used
+    **/
+    describe.skip('with explicit base IRI', function () {
+      it('should use local filename as base IRI', function (done) {
+        hdt.generateFile('./test/generateFile-data/test.nt', targetHdtFile, {format: 'ntriples', baseUri: 'http://test.org'}, function (error, document) {
+          document.searchTriples(null, null, null, function (error, triples, totalCount) {
+            totalCount.should.equal(1);
+            triples.pop().object.indexOf('http://test.org').should.equal(0);
+            document.close();
+            done(error);
+          });
+        });
+      });
+    });
   });
 
   describe('converting default RDF format to HDT', function() {

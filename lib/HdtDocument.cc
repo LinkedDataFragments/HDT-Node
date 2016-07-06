@@ -71,16 +71,16 @@ class Rdf2HdtWorker : public Nan::AsyncWorker {
   string fromFile;
   string toFile;
   string rdfFormat;
+  string baseUri;
   HDTSpecification options;
   HDT* hdt;
 
 public:
-  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, Nan::Callback *callback)
-    : Nan::AsyncWorker(callback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), options(options), hdt(NULL) { };
+  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, const char* baseUri, Nan::Callback *callback)
+    : Nan::AsyncWorker(callback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), baseUri(baseUri), options(options), hdt(NULL) { };
 
   void Execute() {
     try {
-      string baseUri = "<file://"+fromFile+">";
       //Mapping string to enum. This is also done in the CLI code of the HDT lib
       //Should move both parts to the HDT enum code in the future for consistency
       RDFNotation notation = NTRIPLES;
@@ -163,7 +163,7 @@ NAN_METHOD(HdtDocument::Create) {
 // Creates a new instance of HdtDocument.
 // JavaScript signature: createHdtDocument(rdfFile, targetFile, specObject, format, callback)
 NAN_METHOD(HdtDocument::Rdf2Hdt) {
-  assert(info.Length() == 5);
+  assert(info.Length() == 6);
 
   /**
     convert V8 config object to hdt spec object
@@ -184,8 +184,10 @@ NAN_METHOD(HdtDocument::Rdf2Hdt) {
   Nan::AsyncQueueWorker(new Rdf2HdtWorker(*Nan::Utf8String(info[0]),//inputfile
                                          *Nan::Utf8String(info[1]),//outputfile
                                          spec,//config
-                                         *Nan::Utf8String(info[3]),
-                                         new Nan::Callback(info[4].As<Function>())));//complete callback
+                                         *Nan::Utf8String(info[3]),//input file format
+                                         *Nan::Utf8String(info[4]),//base URI
+                                         new Nan::Callback(info[5].As<Function>())//complete callback
+                                       ));
 }
 
 
