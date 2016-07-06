@@ -112,7 +112,7 @@ public:
       hdt->saveToHDT(out, &progress);
       out.close();
     }
-    catch (const char* error) { SetErrorMessage(error); std::cerr << error << std::endl;}
+    catch (const std::exception& e) { SetErrorMessage(e.what()); std::cerr << e.what() << std::endl;}
   }
 
   //Not returning the HDT doc here. The js layer returns the hdt file instead by calling 'loadFile'
@@ -138,7 +138,7 @@ public:
 
   void Execute() {
     try { hdt = HDTManager::mapIndexedHDT(filename.c_str()); }
-    catch (const char* error) { SetErrorMessage(error); }
+    catch (const std::exception& e) { SetErrorMessage(e.what());}
   }
 
   void HandleOKCallback() {
@@ -230,7 +230,8 @@ public:
     // Go to the right offset
     if (it->canGoTo())
       try { it->goTo(offset), offset = 0; }
-      catch (char const* error) { /* invalid offset */ }
+
+      catch (const std::exception& e) { /* invalid offset */ }
     else
       while (offset && it->hasNext()) it->next(), offset--;
 
