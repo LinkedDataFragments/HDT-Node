@@ -67,19 +67,50 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
 
 /******** Generate HDT doc from rdf file ********/
 
-class Rdf2HdtWorker : public Nan::AsyncWorker {
+class Rdf2HdtWorker : public Nan::AsyncProgressWorker {
   string fromFile;
   string toFile;
   string rdfFormat;
   string baseUri;
+  Nan::Callback *progressCallback;
   HDTSpecification options;
   HDT* hdt;
 
 public:
-  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, const char* baseUri, Nan::Callback *callback)
-    : Nan::AsyncWorker(callback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), baseUri(baseUri), options(options), hdt(NULL) { };
+  class NodeProgressListener : public ProgressListener {
+    private:
+    public:
+      double lastLevel = -1.0;
+      const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
+      NodeProgressListener(const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
+      virtual ~NodeProgressListener() {}
 
-  void Execute() {
+      void sendToNode(float level) {
+        double dlevel = level;
+        if (dlevel == lastLevel || dlevel == 100.0) {
+          //avoid sending same notification multiple times
+          //also make sure we don't send the '100%' notification
+          //that one is already called from the complete callback,
+          //because calling it from this function, via ExecutionProgress
+          //might mean that this final call is throttled and would not arrive
+        } else {
+          lastLevel = dlevel;
+          nanExecutionProgress->Send(reinterpret_cast<const char*>(&dlevel), sizeof(dlevel));
+        }
+      }
+      void notifyProgress(float level, const char *section) {
+        sendToNode(level);
+      }
+
+      void notifyProgress(float task, float level, const char *section) {
+        sendToNode(level);
+      }
+  };
+
+  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, const char* baseUri, Nan::Callback *callback, Nan::Callback *progressCallback)
+    : Nan::AsyncProgressWorker(callback), progressCallback(progressCallback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), baseUri(baseUri), options(options), hdt(NULL) { };
+
+  void Execute(const AsyncProgressWorker::ExecutionProgress& nanExecutionProgress) {
     try {
       //Mapping string to enum. This is also done in the CLI code of the HDT lib
       //Should move both parts to the HDT enum code in the future for consistency
@@ -99,28 +130,56 @@ public:
           throw std::runtime_error("ERROR: The RDF input format must be one of: (ntriples, nquad, n3, turtle, rdfxml)");
         }
       }
+      NodeProgressListener progressListener(&nanExecutionProgress);
+      IntermediateListener iListener(&progressListener);
+      //just to be sure, start progress listener from zero;
+      progressListener.sendToNode(0);
 
-      StdoutProgressListener progress;
-      hdt = HDTManager::generateHDT(fromFile.c_str(), baseUri.c_str(), notation, options, &progress);
-
+      iListener.setRange(0,90);
+      hdt = HDTManager::generateHDT(fromFile.c_str(), baseUri.c_str(), notation, options, &iListener);
+      iListener.setRange(90,100);
       ofstream out;
       // Save HDT
       out.open(toFile.c_str(), ios::out | ios::binary | ios::trunc);
       if(!out.good()){
         throw std::runtime_error("Could not open output file.");
       }
-      hdt->saveToHDT(out, &progress);
+      //This version of HDT still prints quite a bit to cout.
+      //just ignore this
+      std::cout.setstate(std::ios_base::failbit);
+      hdt->saveToHDT(out, &iListener);
+      std::cout.clear();
       out.close();
+      delete hdt;
     }
-    catch (const std::exception& e) { SetErrorMessage(e.what()); std::cerr << e.what() << std::endl;}
+    catch (const std::exception& e) {
+      delete hdt;
+      SetErrorMessage(e.what()); std::cerr << e.what() << std::endl;
+    }
+  }
+
+  void HandleProgressCallback(const char *data, size_t size) {
+    if (data == NULL) return;
+    Nan::HandleScope scope;
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::Number>(*reinterpret_cast<double*>(const_cast<char*>(data)))
+
+    };
+    progressCallback->Call(1, argv);
   }
 
   //Not returning the HDT doc here. The js layer returns the hdt file instead by calling 'loadFile'
   void HandleOKCallback() {
     Nan::HandleScope scope;
-    const unsigned argc = 1;
-    Local<Value> argv[argc] = { Nan::Null() };
-    callback->Call(argc, argv);
+
+    //Make sure we send the 100% callback before calling the original callback
+    v8::Local<v8::Value> argv[] = {
+        Nan::New<v8::Number>(100)
+    };
+    progressCallback->Call(1, argv);
+
+    //complete callback
+    callback->Call(0, 0);
   }
 };
 
@@ -161,9 +220,9 @@ NAN_METHOD(HdtDocument::Create) {
                                          new Nan::Callback(info[1].As<Function>())));
 }
 // Creates a new instance of HdtDocument.
-// JavaScript signature: createHdtDocument(rdfFile, targetFile, specObject, format, callback)
+// JavaScript signature: createHdtDocument(rdfFile, targetFile, specObject, format, baseUri, complete callback, progress callback)
 NAN_METHOD(HdtDocument::Rdf2Hdt) {
-  assert(info.Length() == 6);
+  assert(info.Length() == 7);
 
   /**
     convert V8 config object to hdt spec object
@@ -180,13 +239,15 @@ NAN_METHOD(HdtDocument::Rdf2Hdt) {
       spec.set(keyString, valString);
     }
   }
-
+  Nan::Callback *completeCallback = new Nan::Callback(info[5].As<Function>());//complete callback
+  Nan::Callback *progressCallback = new Nan::Callback(info[6].As<Function>());//progress callback
   Nan::AsyncQueueWorker(new Rdf2HdtWorker(*Nan::Utf8String(info[0]),//inputfile
                                          *Nan::Utf8String(info[1]),//outputfile
                                          spec,//config
                                          *Nan::Utf8String(info[3]),//input file format
                                          *Nan::Utf8String(info[4]),//base URI
-                                         new Nan::Callback(info[5].As<Function>())//complete callback
+                                         completeCallback,
+                                         progressCallback
                                        ));
 }
 
