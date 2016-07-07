@@ -96,7 +96,7 @@ public:
         } else if(rdfFormat=="rdfxml") {
           notation = XML;
         } else {
-          throw "ERROR: The RDF input format must be one of: (ntriples, nquad, n3, turtle, rdfxml)";
+          throw std::runtime_error("ERROR: The RDF input format must be one of: (ntriples, nquad, n3, turtle, rdfxml)");
         }
       }
 
@@ -107,7 +107,7 @@ public:
       // Save HDT
       out.open(toFile.c_str(), ios::out | ios::binary | ios::trunc);
       if(!out.good()){
-        throw "Could not open output file.";
+        throw std::runtime_error("Could not open output file.");
       }
       hdt->saveToHDT(out, &progress);
       out.close();
