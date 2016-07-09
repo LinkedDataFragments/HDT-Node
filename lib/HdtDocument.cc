@@ -159,7 +159,6 @@ public:
   }
 
   void HandleProgressCallback(const char *data, size_t size) {
-    if (data == NULL) return;
     Nan::HandleScope scope;
     v8::Local<v8::Value> argv[] = {
       Nan::New<v8::Number>(*reinterpret_cast<double*>(const_cast<char*>(data)))
