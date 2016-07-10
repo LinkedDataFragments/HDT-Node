@@ -80,14 +80,14 @@ public:
   class NodeProgressListener : public ProgressListener {
     private:
     public:
-      double lastLevel = -1.0;
+      int lastLevel = -1;
       const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
       NodeProgressListener(const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
       virtual ~NodeProgressListener() {}
 
       void sendToNode(float level) {
-        double dlevel = level;
-        if (dlevel == lastLevel || dlevel == 100.0) {
+        int dlevel = floor(level+0.5);//assuming no negative numbers
+        if (dlevel == lastLevel || dlevel == 100) {
           //avoid sending same notification multiple times
           //also make sure we don't send the '100%' notification
           //that one is already called from the complete callback,
@@ -161,7 +161,7 @@ public:
   void HandleProgressCallback(const char *data, size_t size) {
     Nan::HandleScope scope;
     v8::Local<v8::Value> argv[] = {
-      Nan::New<v8::Number>(*reinterpret_cast<double*>(const_cast<char*>(data)))
+      Nan::New<v8::Integer>(*reinterpret_cast<int*>(const_cast<char*>(data)))
 
     };
     progressCallback->Call(1, argv);
