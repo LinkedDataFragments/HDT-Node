@@ -8,6 +8,7 @@
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
+#include <chrono>
 
 using namespace v8;
 using namespace hdt;
@@ -80,14 +81,29 @@ public:
   class NodeProgressListener : public ProgressListener {
     private:
     public:
+      double lastCallMs = -1.0;
       int lastLevel = -1;
       const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
       NodeProgressListener(const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
       virtual ~NodeProgressListener() {}
 
       void sendToNode(float level) {
+
+        /**
+        Apply throttling. Send progress notifications max once per 100 ms
+        **/
+        double nowInMillis = std::chrono::duration_cast<std::chrono::milliseconds>(
+      		std::chrono::system_clock::now().time_since_epoch()
+      	).count();
+        if ((nowInMillis - lastCallMs) > 100) {
+          lastCallMs = nowInMillis;
+        } else {
+          return;
+        }
+
+
         int dlevel = floor(level+0.5);//assuming no negative numbers
-        if (dlevel == lastLevel || dlevel == 100) {
+        if (dlevel <= lastLevel || dlevel == 100) {
           //avoid sending same notification multiple times
           //also make sure we don't send the '100%' notification
           //that one is already called from the complete callback,
@@ -159,6 +175,10 @@ public:
   }
 
   void HandleProgressCallback(const char *data, size_t size) {
+    //a null value should never happen, but considering our
+    //experience without throttling in the ProgressListener, we should keep this
+    //sanity check anyway. See https://github.com/RubenVerborgh/HDT-Node/pull/8
+    if (data == NULL) {return;}
     Nan::HandleScope scope;
     v8::Local<v8::Value> argv[] = {
       Nan::New<v8::Integer>(*reinterpret_cast<int*>(const_cast<char*>(data)))
