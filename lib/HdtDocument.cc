@@ -84,8 +84,8 @@ public:
       StopWatch globalTimer;
       double lastCallMs = -1.0;
       int lastLevel = -1;
-      const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
-      NodeProgressListener(const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
+      const Nan::AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
+      NodeProgressListener(const Nan::AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
       virtual ~NodeProgressListener() {}
 
       void sendToNode(float level) {
@@ -124,7 +124,7 @@ public:
   Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, const char* baseUri, Nan::Callback *callback, Nan::Callback *progressCallback)
     : Nan::AsyncProgressWorker(callback), progressCallback(progressCallback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), baseUri(baseUri), options(options), hdt(NULL) { };
 
-  void Execute(const AsyncProgressWorker::ExecutionProgress& nanExecutionProgress) {
+  void Execute(const Nan::AsyncProgressWorker::ExecutionProgress& nanExecutionProgress) {
     try {
       //Mapping string to enum. This is also done in the CLI code of the HDT lib
       //Should move both parts to the HDT enum code in the future for consistency
