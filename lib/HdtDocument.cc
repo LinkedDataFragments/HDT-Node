@@ -8,7 +8,7 @@
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
-#include <chrono>
+#include "../src/util/StopWatch.hpp"
 
 using namespace v8;
 using namespace hdt;
@@ -81,6 +81,7 @@ public:
   class NodeProgressListener : public ProgressListener {
     private:
     public:
+      StopWatch globalTimer;
       double lastCallMs = -1.0;
       int lastLevel = -1;
       const AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
@@ -92,11 +93,8 @@ public:
         /**
         Apply throttling. Send progress notifications max once per 100 ms
         **/
-        double nowInMillis = std::chrono::duration_cast<std::chrono::milliseconds>(
-      		std::chrono::system_clock::now().time_since_epoch()
-      	).count();
-        if ((nowInMillis - lastCallMs) > 100) {
-          lastCallMs = nowInMillis;
+        if (lastLevel < 0 || (globalTimer.getReal() / 1000) > 100) {//in ms
+          globalTimer.reset();
         } else {
           return;
         }
