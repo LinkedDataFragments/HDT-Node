@@ -1,6 +1,7 @@
 #include <node.h>
 #include <nan.h>
 #include <assert.h>
+#include <cmath>
 #include <set>
 #include <vector>
 #include <HDTEnums.hpp>
