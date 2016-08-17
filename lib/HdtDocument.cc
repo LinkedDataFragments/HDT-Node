@@ -8,6 +8,7 @@
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
+#include "../src/util/StopWatch.hpp"
 
 using namespace v8;
 using namespace hdt;
@@ -65,6 +66,141 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
 }
 
 
+/******** Generate HDT doc from rdf file ********/
+
+class Rdf2HdtWorker : public Nan::AsyncProgressWorker {
+  string fromFile;
+  string toFile;
+  string rdfFormat;
+  string baseUri;
+  Nan::Callback *progressCallback;
+  HDTSpecification options;
+  HDT* hdt;
+
+public:
+  class NodeProgressListener : public ProgressListener {
+    private:
+    public:
+      StopWatch globalTimer;
+      double lastCallMs = -1.0;
+      int lastLevel = -1;
+      const Nan::AsyncProgressWorker::ExecutionProgress* nanExecutionProgress;
+      NodeProgressListener(const Nan::AsyncProgressWorker::ExecutionProgress* nanExecutionProgress) {this->nanExecutionProgress = nanExecutionProgress;}
+      virtual ~NodeProgressListener() {}
+
+      void sendToNode(float level) {
+
+        /**
+        Apply throttling. Send progress notifications max once per 100 ms
+        **/
+        if (lastLevel < 0 || (globalTimer.getReal() / 1000) > 100) {//in ms
+          globalTimer.reset();
+        } else {
+          return;
+        }
+
+
+        int dlevel = floor(level+0.5);//assuming no negative numbers
+        if (dlevel <= lastLevel || dlevel == 100) {
+          //avoid sending same notification multiple times
+          //also make sure we don't send the '100%' notification
+          //that one is already called from the complete callback,
+          //because calling it from this function, via ExecutionProgress
+          //might mean that this final call is throttled and would not arrive
+        } else {
+          lastLevel = dlevel;
+          nanExecutionProgress->Send(reinterpret_cast<const char*>(&dlevel), sizeof(dlevel));
+        }
+      }
+      void notifyProgress(float level, const char *section) {
+        sendToNode(level);
+      }
+
+      void notifyProgress(float task, float level, const char *section) {
+        sendToNode(level);
+      }
+  };
+
+  Rdf2HdtWorker(const char* fromFile, const char* toFile, const HDTSpecification options, const char* rdfFormat, const char* baseUri, Nan::Callback *callback, Nan::Callback *progressCallback)
+    : Nan::AsyncProgressWorker(callback), progressCallback(progressCallback), fromFile(fromFile), toFile(toFile), rdfFormat(rdfFormat), baseUri(baseUri), options(options), hdt(NULL) { };
+
+  void Execute(const Nan::AsyncProgressWorker::ExecutionProgress& nanExecutionProgress) {
+    try {
+      //Mapping string to enum. This is also done in the CLI code of the HDT lib
+      //Should move both parts to the HDT enum code in the future for consistency
+      RDFNotation notation = NTRIPLES;
+      if(rdfFormat!="") {
+        if(rdfFormat=="ntriples") {
+          notation = NTRIPLES;
+        } else if(rdfFormat=="nquad") {
+          notation = NQUAD;
+        } else if(rdfFormat=="n3") {
+          notation = N3;
+        } else if(rdfFormat=="turtle") {
+          notation = TURTLE;
+        } else if(rdfFormat=="rdfxml") {
+          notation = XML;
+        } else {
+          throw std::runtime_error("ERROR: The RDF input format must be one of: (ntriples, nquad, n3, turtle, rdfxml)");
+        }
+      }
+      NodeProgressListener progressListener(&nanExecutionProgress);
+      IntermediateListener iListener(&progressListener);
+      //just to be sure, start progress listener from zero;
+      progressListener.sendToNode(0);
+
+      iListener.setRange(0,90);
+      hdt = HDTManager::generateHDT(fromFile.c_str(), baseUri.c_str(), notation, options, &iListener);
+      iListener.setRange(90,100);
+      ofstream out;
+      // Save HDT
+      out.open(toFile.c_str(), ios::out | ios::binary | ios::trunc);
+      if(!out.good()){
+        throw std::runtime_error("Could not open output file.");
+      }
+      //This version of HDT still prints quite a bit to cout.
+      //just ignore this
+      std::cout.setstate(std::ios_base::failbit);
+      hdt->saveToHDT(out, &iListener);
+      std::cout.clear();
+      out.close();
+      delete hdt;
+    }
+    catch (const std::exception& e) {
+      delete hdt;
+      SetErrorMessage(e.what()); std::cerr << e.what() << std::endl;
+    }
+  }
+
+  void HandleProgressCallback(const char *data, size_t size) {
+    //a null value should never happen, but considering our
+    //experience without throttling in the ProgressListener, we should keep this
+    //sanity check anyway. See https://github.com/RubenVerborgh/HDT-Node/pull/8
+    if (data == NULL) {return;}
+    Nan::HandleScope scope;
+    v8::Local<v8::Value> argv[] = {
+      Nan::New<v8::Integer>(*reinterpret_cast<int*>(const_cast<char*>(data)))
+
+    };
+    progressCallback->Call(1, argv);
+  }
+
+  //Not returning the HDT doc here. The js layer returns the hdt file instead by calling 'loadFile'
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+
+    //Make sure we send the 100% callback before calling the original callback
+    v8::Local<v8::Value> argv[] = {
+        Nan::New<v8::Number>(100)
+    };
+    progressCallback->Call(1, argv);
+
+    //complete callback
+    callback->Call(0, 0);
+  }
+};
+
+
 
 /******** createHdtDocument ********/
 
@@ -78,7 +214,7 @@ public:
 
   void Execute() {
     try { hdt = HDTManager::mapIndexedHDT(filename.c_str()); }
-    catch (const char* error) { SetErrorMessage(error); }
+    catch (const std::exception& e) { SetErrorMessage(e.what());}
   }
 
   void HandleOKCallback() {
@@ -100,7 +236,37 @@ NAN_METHOD(HdtDocument::Create) {
   Nan::AsyncQueueWorker(new CreateWorker(*Nan::Utf8String(info[0]),
                                          new Nan::Callback(info[1].As<Function>())));
 }
+// Creates a new instance of HdtDocument.
+// JavaScript signature: createHdtDocument(rdfFile, targetFile, specObject, format, baseUri, complete callback, progress callback)
+NAN_METHOD(HdtDocument::Rdf2Hdt) {
+  assert(info.Length() == 7);
 
+  /**
+    convert V8 config object to hdt spec object
+  **/
+  string noConfigFile;
+  HDTSpecification spec(noConfigFile);
+  v8::Local<v8::Object> specObj = Nan::To<v8::Object>(info[2]).ToLocalChecked();
+  if (!specObj.IsEmpty()) {
+    v8::Local<v8::Array> props = specObj->GetOwnPropertyNames();
+    for (uint32_t i=0 ; i < props->Length() ; ++i) {
+      const Local<Value> key = props->Get(i);
+      string keyString = *Nan::Utf8String(key->ToString());
+      string valString = *Nan::Utf8String(specObj->Get(key)->ToString());
+      spec.set(keyString, valString);
+    }
+  }
+  Nan::Callback *completeCallback = new Nan::Callback(info[5].As<Function>());//complete callback
+  Nan::Callback *progressCallback = new Nan::Callback(info[6].As<Function>());//progress callback
+  Nan::AsyncQueueWorker(new Rdf2HdtWorker(*Nan::Utf8String(info[0]),//inputfile
+                                         *Nan::Utf8String(info[1]),//outputfile
+                                         spec,//config
+                                         *Nan::Utf8String(info[3]),//input file format
+                                         *Nan::Utf8String(info[4]),//base URI
+                                         completeCallback,
+                                         progressCallback
+                                       ));
+}
 
 
 /******** HdtDocument#_searchTriples ********/
@@ -144,7 +310,8 @@ public:
     // Go to the right offset
     if (it->canGoTo())
       try { it->goTo(offset), offset = 0; }
-      catch (char const* error) { /* invalid offset */ }
+
+      catch (const std::exception& e) { /* invalid offset */ }
     else
       while (offset && it->hasNext()) it->next(), offset--;
 

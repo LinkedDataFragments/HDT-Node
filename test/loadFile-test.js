@@ -9,11 +9,18 @@ describe('hdt', function () {
     });
   });
 
-  describe('creating a new HDT document with fromFile', function () {
+  describe('creating a new HDT document with deprecated "fromFile"', function () {
+    it('should still work', function(done) {
+      hdt.fromFile('./test/loadFile-data/test.hdt', function (error) {
+        done(error);
+      });
+    });
+  });
+  describe('creating a new HDT document with loadFile', function () {
     describe('with a non-string argument', function () {
       it('should throw an error', function (done) {
         var self = {};
-        hdt.fromFile(null, function (error) {
+        hdt.loadFile(null, function (error) {
           this.should.equal(self);
           error.should.be.an.Error;
           error.message.should.equal('Invalid filename: null');
@@ -25,7 +32,7 @@ describe('hdt', function () {
     describe('with a non-existing file as argument', function () {
       it('should throw an error', function (done) {
         var self = {};
-        hdt.fromFile('abc', function (error) {
+        hdt.loadFile('abc', function (error) {
           this.should.equal(self);
           error.should.be.an.Error;
           error.message.should.equal('Could not open HDT file "abc"');
@@ -37,10 +44,10 @@ describe('hdt', function () {
     describe('with a non-HDT file as argument', function () {
       it('should throw an error', function (done) {
         var self = {};
-        hdt.fromFile('./test/hdt-test.js', function (error) {
+        hdt.loadFile('./test/loadFile-test.js', function (error) {
           this.should.equal(self);
           error.should.be.an.Error;
-          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
+          error.message.should.equal('The file "./test/loadFile-test.js" is not a valid HDT file');
           done();
         }, self);
       });
@@ -48,7 +55,7 @@ describe('hdt', function () {
 
     describe('without self value', function () {
       it('should invoke the callback with `global` as `this`', function (done) {
-        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+        hdt.loadFile('./test/loadFile-data/test.hdt', function (error, hdtDocument) {
           this.should.equal(global);
           hdtDocument.close();
           done(error);
@@ -59,7 +66,7 @@ describe('hdt', function () {
     describe('with a self value', function () {
       it('should invoke the callback with that value as `this`', function (done) {
         var self = {};
-        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+        hdt.loadFile('./test/loadFile-data/test.hdt', function (error, hdtDocument) {
           this.should.equal(self);
           hdtDocument.close();
           done(error);
@@ -71,7 +78,7 @@ describe('hdt', function () {
   describe('An HDT document for an example HDT file', function () {
     var document;
     before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+      hdt.loadFile('./test/loadFile-data/test.hdt', function (error, hdtDocument) {
         document = hdtDocument;
         done(error);
       });
@@ -610,7 +617,7 @@ describe('hdt', function () {
   describe('An HDT document without a literal dictionary', function () {
     var document;
     before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+      hdt.loadFile('./test/loadFile-data/test.hdt', function (error, hdtDocument) {
         document = hdtDocument;
         done(error);
       });
@@ -634,7 +641,7 @@ describe('hdt', function () {
   describe('An HDT document with a literal dictionary', function () {
     var document;
     before(function (done) {
-      hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
+      hdt.loadFile('./test/loadFile-data/literals.hdt', function (error, hdtDocument) {
         document = hdtDocument;
         done(error);
       });
@@ -814,7 +821,7 @@ describe('hdt', function () {
   describe('A closed HDT document', function () {
     var document;
     before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+      hdt.loadFile('./test/loadFile-data/test.hdt', function (error, hdtDocument) {
         document = hdtDocument;
         document.close(done);
       });
