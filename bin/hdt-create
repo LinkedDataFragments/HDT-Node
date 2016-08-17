@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+// Parse command-line arguments
+var args = require('minimist')(process.argv.slice(2), { alias:
+      {format: 'f', baseIri: 'b' }
+    }),
+    fromFile = args._[0],
+    toFile = args._[1],
+    // query  = typeof args.query  === 'string' ? args.query  : '',
+    format = typeof args.format === 'string' ? args.format : 'ntriples',
+    baseIri = typeof args.baseIri === 'string' ? args.format : undefined;
+
+// Verify the arguments
+if (args._.length !== 2 || args.h || args.help) {
+  console.error("usage: hdt-create dataset.nt dataset.hdt");
+  //  --query '?s ?p ?o' --offset 200 --limit 100 --format turtle
+  process.exit(1);
+}
+
+// Load the HDT file
+var hdt = require('../lib/hdt');
+
+
+var config = {format: format};
+if (baseIri) config.baseIri = baseIri;
+
+function onDone(e) {
+  if (e) {
+    console.error("Failed writing file: " + e.message);
+  } else {
+    console.log('Finished writing to ' + toFile);
+
+  }
+}
+function progressCallback(progress) {
+  process.stdout.write("Creating HDT (" + progress + "%)" + (progress < 100? "\r": "\n"));
+}
+hdt.generateFile(fromFile, toFile, config, onDone, progressCallback);
