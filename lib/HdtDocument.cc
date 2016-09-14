@@ -84,7 +84,7 @@ public:
   void HandleOKCallback() {
     Nan::HandleScope scope;
     // Create a new HdtDocument
-    Local<Object> newDocument = Nan::New(HdtDocument::GetConstructor())->NewInstance();
+    Local<Object> newDocument = Nan::NewInstance(Nan::New(HdtDocument::GetConstructor())).ToLocalChecked();
     new HdtDocument(newDocument, hdt);
     // Send the new HdtDocument through the callback
     const unsigned argc = 2;
