@@ -801,20 +801,20 @@ describe('hdt', function () {
     });
 
     describe('for the literal "b" with an offset and a limit', function () {
-        var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('b', { offset: 4, limit: 2 },
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
-        });
-
-        it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
-        });
-
-        it('should estimate the total count', function () {
-          totalCount.should.equal(9);
-        });
+      var literals, totalCount;
+      before(function (done) {
+        document.searchLiterals('b', { offset: 4, limit: 2 },
+          function (error, l, c) { literals = l, totalCount = c; done(error); });
       });
+
+      it('should return literals containing "b"', function () {
+        literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
+      });
+
+      it('should estimate the total count', function () {
+        totalCount.should.equal(9);
+      });
+    });
   });
 
   describe('A closed HDT document', function () {

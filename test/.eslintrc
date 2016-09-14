@@ -1,0 +1,12 @@
+{
+  globals: {
+    describe: true,
+    it: true,
+    before: true,
+    after: true,
+  },
+
+  rules: {
+    max-nested-callbacks: 0, // Mocha works with deeply nested callbacks
+  },
+}
