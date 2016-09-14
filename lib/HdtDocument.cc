@@ -78,7 +78,7 @@ public:
 
   void Execute() {
     try { hdt = HDTManager::mapIndexedHDT(filename.c_str()); }
-    catch (const char* error) { SetErrorMessage(error); }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
   }
 
   void HandleOKCallback() {
@@ -146,7 +146,7 @@ public:
       // Go to the right offset
       if (it->canGoTo())
         try { it->goTo(offset), offset = 0; }
-        catch (char const* error) { /* invalid offset */ }
+        catch (const runtime_error error) { /* invalid offset */ }
       else
         while (offset && it->hasNext()) it->next(), offset--;
 
@@ -168,7 +168,7 @@ public:
         }
       }
     }
-    catch (const char* error) { SetErrorMessage(error); }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
     if (it)
       delete it;
   }
@@ -267,7 +267,7 @@ public:
         literals.push_back(fromHdtLiteral(literal));
       }
     }
-    catch (const char* error) { SetErrorMessage(error); }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
     if (literalIds)
       delete[] literalIds;
   }
