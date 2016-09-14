@@ -134,9 +134,13 @@ public:
       TripleString triple(subject, predicate, toHdtLiteral(object));
       TripleID tripleId;
       dict->tripleStringtoTripleID(triple, tripleId);
+      // If any of the components does not exist, there are no matches
       if ((subject[0]   && !tripleId.getSubject())   ||
           (predicate[0] && !tripleId.getPredicate()) ||
-          (object[0]    && !tripleId.getObject()))   return;
+          (object[0]    && !tripleId.getObject())) {
+        hasExactCount = true;
+        return;
+      }
 
       // Estimate the total number of triples
       it = document->GetHDT()->getTriples()->search(tripleId);

@@ -222,6 +222,10 @@ describe('hdt', function () {
         it('should estimate the total count as 132', function () {
           totalCount.should.equal(132);
         });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern ex:s2 null null', function () {
@@ -487,7 +491,9 @@ describe('hdt', function () {
           totalCount.should.equal(0);
         });
 
-        // hasExactCount result is non-deterministic in this case, so we don't expect anything here.
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
       });
 
       describe('with pattern null null null', function () {
