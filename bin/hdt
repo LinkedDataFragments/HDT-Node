@@ -23,7 +23,7 @@ hdt.fromFile(hdtFile, function (error, hdtDocument) {
   hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit },
     function (error, triples, totalCount, exactCount) {
       // Write all matching triples
-      if (error) console.error(error.message), process.exit(1);
+      if (error) console.error('Error:', error.message), process.exit(1);
       process.stdout.write('# Total matches: ' + totalCount +
                            (exactCount ? '' : ' (estimated)') + '\n');
       writer.addTriples(triples);

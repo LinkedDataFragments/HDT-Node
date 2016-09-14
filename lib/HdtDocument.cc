@@ -127,45 +127,50 @@ public:
   };
 
   void Execute() {
-    // Prepare the triple pattern
-    Dictionary* dict = document->GetHDT()->getDictionary();
-    TripleString triple(subject, predicate, toHdtLiteral(object));
-    TripleID tripleId;
-    dict->tripleStringtoTripleID(triple, tripleId);
-    if ((subject[0]   && !tripleId.getSubject())   ||
-        (predicate[0] && !tripleId.getPredicate()) ||
-        (object[0]    && !tripleId.getObject()))   return;
+    IteratorTripleID* it = NULL;
+    try {
+      // Prepare the triple pattern
+      Dictionary* dict = document->GetHDT()->getDictionary();
+      TripleString triple(subject, predicate, toHdtLiteral(object));
+      TripleID tripleId;
+      dict->tripleStringtoTripleID(triple, tripleId);
+      if ((subject[0]   && !tripleId.getSubject())   ||
+          (predicate[0] && !tripleId.getPredicate()) ||
+          (object[0]    && !tripleId.getObject()))   return;
 
-    // Estimate the total number of triples
-    IteratorTripleID* it = document->GetHDT()->getTriples()->search(tripleId);
-    totalCount = it->estimatedNumResults();
-    hasExactCount = it->numResultEstimation() == EXACT;
+      // Estimate the total number of triples
+      it = document->GetHDT()->getTriples()->search(tripleId);
+      totalCount = it->estimatedNumResults();
+      hasExactCount = it->numResultEstimation() == EXACT;
 
-    // Go to the right offset
-    if (it->canGoTo())
-      try { it->goTo(offset), offset = 0; }
-      catch (char const* error) { /* invalid offset */ }
-    else
-      while (offset && it->hasNext()) it->next(), offset--;
+      // Go to the right offset
+      if (it->canGoTo())
+        try { it->goTo(offset), offset = 0; }
+        catch (char const* error) { /* invalid offset */ }
+      else
+        while (offset && it->hasNext()) it->next(), offset--;
 
-    // Add matching triples to the result vector
-    if (!offset) {
-      while (it->hasNext() && (!limit || triples.size() < limit)) {
-        TripleID& triple = *it->next();
-        triples.push_back(triple);
-        if (!subjects.count(triple.getSubject())) {
-          subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
-        }
-        if (!predicates.count(triple.getPredicate())) {
-          predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
-        }
-        if (!objects.count(triple.getObject())) {
-          string object(dict->idToString(triple.getObject(), OBJECT));
-          objects[triple.getObject()] = fromHdtLiteral(object);
+      // Add matching triples to the result vector
+      if (!offset) {
+        while (it->hasNext() && (!limit || triples.size() < limit)) {
+          TripleID& triple = *it->next();
+          triples.push_back(triple);
+          if (!subjects.count(triple.getSubject())) {
+            subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
+          }
+          if (!predicates.count(triple.getPredicate())) {
+            predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
+          }
+          if (!objects.count(triple.getObject())) {
+            string object(dict->idToString(triple.getObject(), OBJECT));
+            objects[triple.getObject()] = fromHdtLiteral(object);
+          }
         }
       }
     }
-    delete it;
+    catch (const char* error) { SetErrorMessage(error); }
+    if (it)
+      delete it;
   }
 
   void HandleOKCallback() {
@@ -247,19 +252,24 @@ public:
       SetErrorMessage("The HDT document does not support literal search");
       return;
     }
-    // Find matching literal IDs
-    LiteralDictionary *dict = (LiteralDictionary*)(document->GetHDT()->getDictionary());
-    uint32_t* literalIds = NULL;
-    uint32_t  literalCount = 0;
-    totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
-                                     offset, limit, false, &literalIds, &literalCount);
 
-    // Convert the literal IDs to strings
-    for (uint32_t *id = literalIds, *end = literalIds + literalCount; id != end; id++) {
-      string literal(dict->idToString(*id, OBJECT));
-      literals.push_back(fromHdtLiteral(literal));
+    uint32_t* literalIds = NULL;
+    try {
+      // Find matching literal IDs
+      LiteralDictionary *dict = (LiteralDictionary*)(document->GetHDT()->getDictionary());
+      uint32_t  literalCount = 0;
+      totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
+                                       offset, limit, false, &literalIds, &literalCount);
+
+      // Convert the literal IDs to strings
+      for (uint32_t *id = literalIds, *end = literalIds + literalCount; id != end; id++) {
+        string literal(dict->idToString(*id, OBJECT));
+        literals.push_back(fromHdtLiteral(literal));
+      }
     }
-    delete[] literalIds;
+    catch (const char* error) { SetErrorMessage(error); }
+    if (literalIds)
+      delete[] literalIds;
   }
 
   void HandleOKCallback() {
