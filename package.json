@@ -30,14 +30,14 @@
   },
   "dependencies": {
     "minimist": "^1.1.0",
-    "n3": "^0.4.0",
-    "nan": "^2.3.5"
+    "n3": "^0.7.0",
+    "nan": "^2.4.0"
   },
   "devDependencies": {
-    "jshint": "^2.9.2",
-    "mocha": "^2.5.3",
+    "jshint": "^2.9.3",
+    "mocha": "^3.0.2",
     "precommit-hook": "^3.0.0",
-    "should": "^9.0.2"
+    "should": "^11.1.0"
   },
   "pre-commit": [
     "hint",
