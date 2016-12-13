@@ -145,9 +145,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(132);
-          triples[0].should.eql({ subject:   'http://example.org/s1',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o001' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
         });
 
         it('should estimate the total count as 132', function () {
@@ -169,9 +170,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
-          triples[0].should.eql({ subject:   'http://example.org/s1',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o001' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
         });
 
         it('should estimate the total count as 132', function () {
@@ -193,9 +195,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(5);
-          triples[0].should.eql({ subject:   'http://example.org/s1',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o011' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o011' });
         });
 
         it('should estimate the total count as 132', function () {
@@ -238,12 +241,14 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
-          triples[0].should.eql({ subject:   'http://example.org/s2',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o001' });
-          triples[1].should.eql({ subject:   'http://example.org/s2',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o002' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o002' });
         });
 
         it('should estimate the total count as 10', function () {
@@ -265,9 +270,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(1);
-          triples[0].should.eql({ subject:   'http://example.org/s2',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o003' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o003' });
         });
 
         it('should estimate the total count as 10', function () {
@@ -310,12 +316,14 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
-          triples[0].should.eql({ subject:   'http://example.org/s2',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o001' });
-          triples[1].should.eql({ subject:   'http://example.org/s2',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o002' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o002' });
         });
 
         it('should estimate the total count as 10', function () {
@@ -337,12 +345,14 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
-          triples[0].should.eql({ subject:   'http://example.org/s3',
-                                  predicate: 'http://example.org/p2',
-                                  object:    'http://example.org/o001' });
-          triples[1].should.eql({ subject:   'http://example.org/s3',
-                                  predicate: 'http://example.org/p2',
-                                  object:    'http://example.org/o002' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s3',
+            predicate: 'http://example.org/p2',
+            object:    'http://example.org/o001' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s3',
+            predicate: 'http://example.org/p2',
+            object:    'http://example.org/o002' });
         });
 
         it('should estimate the total count as 10', function () {
@@ -364,42 +374,54 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(12);
-          triples[0].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '""' });
-          triples[1].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '""@en' });
-          triples[2].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '""^^http://example.org/literal' });
-          triples[3].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '""^^http://www.w3.org/2001/XMLSchema#string' });
-          triples[4].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"' });
-          triples[5].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"@en' });
-          triples[6].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"^^http://example.org/literal' });
-          triples[7].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
-          triples[8].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"b\'c\\\r\n\\"' });
-          triples[9].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"b\'c\\\r\n\\"@en' });
-          triples[10].should.eql({ subject:   'http://example.org/s4',
-                                   predicate: 'http://example.org/p3',
-                                   object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
-          triples[11].should.eql({ subject:   'http://example.org/s4',
-                                   predicate: 'http://example.org/p3',
-                                   object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '""' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '""@en' });
+          triples[2].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '""^^http://example.org/literal' });
+          triples[3].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '""^^http://www.w3.org/2001/XMLSchema#string' });
+          triples[4].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"' });
+          triples[5].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"@en' });
+          triples[6].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"^^http://example.org/literal' });
+          triples[7].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
+          triples[8].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"' });
+          triples[9].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"@en' });
+          triples[10].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
+          triples[11].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
         });
 
         it('should estimate the total count as 12', function () {
@@ -421,9 +443,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(1);
-          triples[0].should.eql({ subject:   'http://example.org/s4',
-                                  predicate: 'http://example.org/p3',
-                                  object:    '"a"^^http://example.org/literal' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"^^http://example.org/literal' });
         });
 
         it('should estimate the total count as 1', function () {
@@ -445,9 +468,10 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(1);
-          triples[0].should.eql({ subject:   'http://example.org/s1',
-                                  predicate: 'http://example.org/p1',
-                                  object:    'http://example.org/o012' });
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o012' });
         });
 
         it('should estimate the total count as 1', function () {
@@ -742,8 +766,10 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b" (with duplicates for multiple matches)', function () {
-          literals.should.eql(['"abc"', '"bc"', '"abc"@en', '"bc"@en',
-                               '"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
+          literals.should.eql([
+            '"abc"', '"bc"', '"abc"@en', '"bc"@en',
+            '"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd',
+          ]);
         });
 
         it('should estimate the total count', function () {
