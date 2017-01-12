@@ -1,7 +1,7 @@
 *.o
 *.o.d
 *.log
-*.hdt.index
+*.hdt.index*
 build
 node_modules
 deps/hdt-it/*
