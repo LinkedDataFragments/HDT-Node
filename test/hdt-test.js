@@ -97,6 +97,79 @@ describe('hdt', function () {
       });
     });
 
+    describe('getting suggestions', function () {
+      // Skipping, as this needs an hdt-cpp submodule that has this fix:
+      // https://github.com/rdfhdt/hdt-cpp/pull/87
+      it.skip('Should have correct results for predicate position', function (done) {
+        document.getSuggestions('http://example.org/', { limit:100, position : 'predicate' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(3);
+            suggestions[0].should.equal('http://example.org/p1');
+            done();
+          });
+      });
+      it('Should have correct results for object position', function (done) {
+        document.getSuggestions('http://example.org/', { limit:2, position : 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions[0].should.equal('http://example.org/o001');
+            suggestions.should.have.lengthOf(2);
+            done();
+          });
+      });
+      it('Should get suggestions for literals', function (done) {
+        document.getSuggestions('"a', { position : 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(8);
+            done();
+          });
+      });
+      // Skipping, as this needs an hdt-cpp submodule that has this fix:
+      // https://github.com/rdfhdt/hdt-cpp/pull/87
+      it.skip('Should return suggestions on empty match', function (done) {
+        document.getSuggestions('', { position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(100);
+            done();
+          });
+      });
+      // Skipping, as this needs an hdt-cpp submodule that has this fix:
+      // https://github.com/rdfhdt/hdt-cpp/pull/87
+      it.skip('Should return suggestions on null match', function (done) {
+        document.getSuggestions(null, { position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(100);
+            done();
+          });
+      });
+      it('Should return 0 results on negative limit', function (done) {
+        document.getSuggestions('http://example.org/', { limit:-1, position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(0);
+            done();
+          });
+      });
+      it('Should return 0 results invalid limit val', function (done) {
+        document.getSuggestions('http://example.org/', { limit:'sdf', position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(0);
+            done();
+          });
+      });
+      it('Should throw on invalid position', function (done) {
+        document.getSuggestions('http://example.org/', { limit:'sdf', position: 'bla' },
+          function (error, suggestions) {
+            if (error) return done();
+            done(new Error('expected an error'));
+          });
+      });
+    });
     describe('being searched', function () {
       describe('without self value', function () {
         it('should invoke the callback with the HDT document as `this`', function (done) {
@@ -928,7 +1001,6 @@ describe('hdt', function () {
       });
     });
   });
-
   describe('A closed HDT document', function () {
     var document;
     before(function (done) {
