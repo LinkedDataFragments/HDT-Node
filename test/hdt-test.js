@@ -238,7 +238,7 @@ describe('hdt', function () {
                           function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
-        it('should return an array with matches', function () {
+        it.only('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
           triples[0].should.eql({
