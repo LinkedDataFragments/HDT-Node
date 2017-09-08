@@ -231,6 +231,7 @@ describe('hdt', function () {
         });
       });
 
+
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount, hasExactCount;
         before(function (done) {
@@ -238,7 +239,7 @@ describe('hdt', function () {
                           function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
         });
 
-        it.only('should return an array with matches', function () {
+        it('should return an array with matches', function () {
           triples.should.be.an.Array;
           triples.should.have.lengthOf(10);
           triples[0].should.eql({
@@ -260,6 +261,60 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern ex:s2 ex:p1 null', function () {
+        var triples;
+        before(function (done) {
+          document.searchTriples('http://example.org/s2', 'http://example.org/p1', null,
+                          function (error, t, c, e) { triples = t; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(10);
+          triples[0].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o002' });
+        });
+      });
+      describe('with pattern ex:s2 ex:p1 ex:o010', function () {
+        var triples;
+        before(function (done) {
+          document.searchTriples('http://example.org/s2', 'http://example.org/p1', 'http://example.org/o010',
+                          function (error, t, c, e) { triples = t; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(1);
+          triples[0].should.eql({
+            subject:   'http://example.org/s2',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o010' });
+        });
+      });
+      // Use this pattern to check whether the ObjectIndexIterator implementation
+      // in hdt-cpp works
+      describe('with pattern null null ex:o010', function () {
+        var triples;
+        before(function (done) {
+          document.searchTriples(null, null, 'http://example.org/o010',
+                          function (error, t, c, e) { triples = t; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.lengthOf(3);
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o010' });
+        });
+      });
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
         var triples, totalCount, hasExactCount;
         before(function (done) {

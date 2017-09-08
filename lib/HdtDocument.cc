@@ -149,7 +149,7 @@ public:
 
       // Go to the right offset
       if (it->canGoTo())
-        try { it->goTo(offset), offset = 0; }
+        try { it->skip(offset), offset = 0; }
         catch (const runtime_error error) { /* invalid offset */ }
       else
         while (offset && it->hasNext()) it->next(), offset--;
