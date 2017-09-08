@@ -1,4 +1,4 @@
 [submodule "deps"]
 	path = deps
-	url = https://github.com/rdfhdt/hdt-cpp
-        branch = develop
+	url = https://github.com/OpenTriply/hdt-cpp.git
+        branch = fixGoto
