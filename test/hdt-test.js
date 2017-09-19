@@ -299,7 +299,8 @@ describe('hdt', function () {
       });
 
       // Use this pattern to check whether the ObjectIndexIterator implementation
-      // in hdt-cpp works
+      // in hdt-cpp works.
+      // Link to issue -> https://github.com/rdfhdt/hdt-cpp/issues/84
       describe('with pattern null null ex:o010', function () {
         var triples;
         before(function (done) {
