@@ -144,7 +144,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(132);
+          triples.should.have.length(132);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
@@ -169,7 +169,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
+          triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
@@ -194,7 +194,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(5);
+          triples.should.have.length(5);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
@@ -240,7 +240,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
+          triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
             predicate: 'http://example.org/p1',
@@ -269,7 +269,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
+          triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
             predicate: 'http://example.org/p1',
@@ -290,7 +290,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(1);
+          triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
             predicate: 'http://example.org/p1',
@@ -310,7 +310,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(3);
+          triples.should.have.length(3);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
@@ -327,7 +327,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(1);
+          triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
             predicate: 'http://example.org/p1',
@@ -373,7 +373,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
+          triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
             predicate: 'http://example.org/p1',
@@ -402,7 +402,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(10);
+          triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s3',
             predicate: 'http://example.org/p2',
@@ -431,7 +431,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(12);
+          triples.should.have.length(12);
           triples[0].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
@@ -500,7 +500,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(1);
+          triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
@@ -525,7 +525,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(1);
+          triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
@@ -759,7 +759,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(9);
+          triples.should.have.length(9);
         });
 
         it('should estimate the total count', function () {
@@ -776,7 +776,7 @@ describe('hdt', function () {
 
         it('should return an array without matches', function () {
           triples.should.be.an.Array;
-          triples.should.have.lengthOf(0);
+          triples.should.have.length(0);
         });
 
         it('should estimate the total count as 0', function () {
