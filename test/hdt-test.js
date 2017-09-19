@@ -231,7 +231,6 @@ describe('hdt', function () {
         });
       });
 
-
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount, hasExactCount;
         before(function (done) {
@@ -281,6 +280,7 @@ describe('hdt', function () {
             object:    'http://example.org/o002' });
         });
       });
+
       describe('with pattern ex:s2 ex:p1 ex:o010', function () {
         var triples;
         before(function (done) {
@@ -297,6 +297,7 @@ describe('hdt', function () {
             object:    'http://example.org/o010' });
         });
       });
+
       // Use this pattern to check whether the ObjectIndexIterator implementation
       // in hdt-cpp works
       describe('with pattern null null ex:o010', function () {
@@ -315,6 +316,7 @@ describe('hdt', function () {
             object:    'http://example.org/o010' });
         });
       });
+
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
         var triples, totalCount, hasExactCount;
         before(function (done) {
