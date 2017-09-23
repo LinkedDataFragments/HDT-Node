@@ -22,7 +22,7 @@
     "url": "https://github.com/RubenVerborgh/HDT-Node/issues"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=6.0"
   },
   "scripts": {
     "test": "rm test/*.hdt.index 2> /dev/null; mocha",
