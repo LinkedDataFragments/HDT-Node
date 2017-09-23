@@ -30,14 +30,14 @@
   },
   "dependencies": {
     "minimist": "^1.1.0",
-    "n3": "^0.7.0",
+    "n3": "^0.11.2",
     "nan": "^2.4.0"
   },
   "devDependencies": {
-    "eslint": "^3.5.0",
+    "eslint": "^4.7.2",
     "mocha": "^3.0.2",
     "precommit-hook": "^3.0.0",
-    "should": "^11.1.0"
+    "should": "^13.1.0"
   },
   "pre-commit": [
     "lint",

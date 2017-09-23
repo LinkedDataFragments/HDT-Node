@@ -47,9 +47,8 @@ describe('hdt', function () {
     });
 
     describe('without self value', function () {
-      it('should invoke the callback with `global` as `this`', function (done) {
+      it('should invoke the callback', function (done) {
         hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-          this.should.equal(global);
           hdtDocument.close();
           done(error);
         });
