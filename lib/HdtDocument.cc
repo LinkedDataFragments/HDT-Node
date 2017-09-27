@@ -53,7 +53,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     // Create prototype
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
-    Nan::SetPrototypeMethod(constructorTemplate, "_getSuggestions", GetSuggestions);
+    Nan::SetPrototypeMethod(constructorTemplate, "_findTerms", findTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "close",           Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -310,9 +310,9 @@ NAN_METHOD(HdtDocument::SearchLiterals) {
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
 }
 
-/******** HdtDocument#_getSuggestions ********/
+/******** HdtDocument#_findTerms ********/
 
-class GetSuggestionsWorker : public Nan::AsyncWorker {
+class findTermsWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
   string base;
@@ -322,7 +322,7 @@ class GetSuggestionsWorker : public Nan::AsyncWorker {
   // Callback return values
   vector<string> suggestions;
 public:
-  GetSuggestionsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
+  findTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
                       Local<Object> self)
     : Nan::AsyncWorker(callback),
       document(document), base(base), limit(limit), position((TripleComponentRole) posId) {
@@ -360,10 +360,10 @@ public:
 };
 
 // Gets suggestions based on a given string over a specific position.
-// JavaScript signature: HdtDocument#_getSuggestions(string, limit, position, callback)
-NAN_METHOD(HdtDocument::GetSuggestions) {
+// JavaScript signature: HdtDocument#_findTerms(string, limit, position, callback)
+NAN_METHOD(HdtDocument::findTerms) {
   assert(info.Length() == 5);
-  Nan::AsyncQueueWorker(new GetSuggestionsWorker(Unwrap<HdtDocument>(info.This()),
+  Nan::AsyncQueueWorker(new findTermsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]),  info[1]->Uint32Value(), info[2]->Uint32Value(),
     new Nan::Callback(info[3].As<Function>()),
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
