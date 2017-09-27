@@ -101,7 +101,7 @@ describe('hdt', function () {
       // Skipping, as this needs an hdt-cpp submodule that has this fix:
       // https://github.com/rdfhdt/hdt-cpp/pull/87
       it.skip('Should have correct results for predicate position', function (done) {
-        document.getSuggestions('http://example.org/', { limit:100, position : 'predicate' },
+        document.findTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(3);
@@ -110,7 +110,7 @@ describe('hdt', function () {
           });
       });
       it('Should have correct results for object position', function (done) {
-        document.getSuggestions('http://example.org/', { limit:2, position : 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit:2, position : 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions[0].should.equal('http://example.org/o001');
@@ -119,35 +119,31 @@ describe('hdt', function () {
           });
       });
       it('Should get suggestions for literals', function (done) {
-        document.getSuggestions('"a', { position : 'object' },
+        document.findTerms({ prefix: '"a', position : 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(8);
             done();
           });
       });
-      // Skipping, as this needs an hdt-cpp submodule that has this fix:
-      // https://github.com/rdfhdt/hdt-cpp/pull/87
-      it.skip('Should return suggestions on empty match', function (done) {
-        document.getSuggestions('', { position: 'object' },
+      it('Should 0 results on empty match', function (done) {
+        document.findTerms({ prefix: '', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
-            suggestions.should.have.lengthOf(100);
+            suggestions.should.have.lengthOf(0);
             done();
           });
       });
-      // Skipping, as this needs an hdt-cpp submodule that has this fix:
-      // https://github.com/rdfhdt/hdt-cpp/pull/87
-      it.skip('Should return suggestions on null match', function (done) {
-        document.getSuggestions(null, { position: 'object' },
+      it('Should 0 results when prefix is not defined', function (done) {
+        document.findTerms({ position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
-            suggestions.should.have.lengthOf(100);
+            suggestions.should.have.lengthOf(0);
             done();
           });
       });
       it('Should return 0 results on negative limit', function (done) {
-        document.getSuggestions('http://example.org/', { limit:-1, position: 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit:-1, position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -155,7 +151,7 @@ describe('hdt', function () {
           });
       });
       it('Should return 0 results invalid limit val', function (done) {
-        document.getSuggestions('http://example.org/', { limit:'sdf', position: 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit:'sdf', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -163,7 +159,7 @@ describe('hdt', function () {
           });
       });
       it('Should throw on invalid position', function (done) {
-        document.getSuggestions('http://example.org/', { limit:'sdf', position: 'bla' },
+        document.findTerms({ prefix: 'http://example.org/', limit:'sdf', position: 'bla' },
           function (error, suggestions) {
             if (error) return done();
             done(new Error('expected an error'));
