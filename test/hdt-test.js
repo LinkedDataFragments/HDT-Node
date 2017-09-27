@@ -98,9 +98,7 @@ describe('hdt', function () {
     });
 
     describe('getting suggestions', function () {
-      // Skipping, as this needs an hdt-cpp submodule that has this fix:
-      // https://github.com/rdfhdt/hdt-cpp/pull/87
-      it.skip('Should have correct results for predicate position', function (done) {
+      it('Should have correct results for predicate position', function (done) {
         document.findTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
           function (error, suggestions) {
             if (error) return done(error);
@@ -126,19 +124,19 @@ describe('hdt', function () {
             done();
           });
       });
-      it('Should 0 results on empty match', function (done) {
+      it('Should 100 results on empty match', function (done) {
         document.findTerms({ prefix: '', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
-            suggestions.should.have.lengthOf(0);
+            suggestions.should.have.lengthOf(100);
             done();
           });
       });
-      it('Should 0 results when prefix is not defined', function (done) {
+      it('Should 100 results when prefix is not defined', function (done) {
         document.findTerms({ position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
-            suggestions.should.have.lengthOf(0);
+            suggestions.should.have.lengthOf(100);
             done();
           });
       });
