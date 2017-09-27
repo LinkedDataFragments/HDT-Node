@@ -110,7 +110,7 @@ describe('hdt', function () {
           });
       });
       it('Should have correct results for object position', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit:2, position : 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions[0].should.equal('http://example.org/o001');
@@ -143,7 +143,7 @@ describe('hdt', function () {
           });
       });
       it('Should return 0 results on negative limit', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit:-1, position: 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -151,7 +151,7 @@ describe('hdt', function () {
           });
       });
       it('Should return 0 results invalid limit val', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit:'sdf', position: 'object' },
+        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -159,8 +159,10 @@ describe('hdt', function () {
           });
       });
       it('Should throw on invalid position', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit:'sdf', position: 'bla' },
+        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' },
           function (error, suggestions) {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');
             if (error) return done();
             done(new Error('expected an error'));
           });
