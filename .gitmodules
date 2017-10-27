@@ -1,4 +1,4 @@
 [submodule "deps"]
 	path = deps
 	url = https://github.com/rdfhdt/hdt-cpp.git
-        branch = develop
+        branch = hdt-node
