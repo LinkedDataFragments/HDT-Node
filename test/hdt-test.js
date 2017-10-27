@@ -392,6 +392,35 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null ex:p2 null, offset 2, limit 2', function () {
+        var triples, totalCount, hasExactCount;
+        before(function (done) {
+          document.searchTriples(null, 'http://example.org/p2', null, { offset: 2, limit: 2 },
+            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array;
+          triples.should.have.length(2);
+          triples[0].should.eql({
+            subject:   'http://example.org/s3',
+            predicate: 'http://example.org/p2',
+            object:    'http://example.org/o003' });
+          triples[1].should.eql({
+            subject:   'http://example.org/s3',
+            predicate: 'http://example.org/p2',
+            object:    'http://example.org/o004' });
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount, hasExactCount;
         before(function (done) {
