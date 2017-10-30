@@ -97,6 +97,75 @@ describe('hdt', function () {
       });
     });
 
+    describe('getting suggestions', function () {
+      it('Should have correct results for predicate position', function (done) {
+        document.findTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(3);
+            suggestions[0].should.equal('http://example.org/p1');
+            done();
+          });
+      });
+      it('Should have correct results for object position', function (done) {
+        document.findTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions[0].should.equal('http://example.org/o001');
+            suggestions.should.have.lengthOf(2);
+            done();
+          });
+      });
+      it('Should get suggestions for literals', function (done) {
+        document.findTerms({ prefix: '"a', position : 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(8);
+            done();
+          });
+      });
+      it('Should 100 results on empty match', function (done) {
+        document.findTerms({ prefix: '', position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(100);
+            done();
+          });
+      });
+      it('Should 100 results when prefix is not defined', function (done) {
+        document.findTerms({ position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(100);
+            done();
+          });
+      });
+      it('Should return 0 results on negative limit', function (done) {
+        document.findTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(0);
+            done();
+          });
+      });
+      it('Should return 0 results invalid limit val', function (done) {
+        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' },
+          function (error, suggestions) {
+            if (error) return done(error);
+            suggestions.should.have.lengthOf(0);
+            done();
+          });
+      });
+      it('Should throw on invalid position', function (done) {
+        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' },
+          function (error, suggestions) {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');
+            if (error) return done();
+            done(new Error('expected an error'));
+          });
+      });
+    });
     describe('being searched', function () {
       describe('without self value', function () {
         it('should invoke the callback with the HDT document as `this`', function (done) {
@@ -928,7 +997,6 @@ describe('hdt', function () {
       });
     });
   });
-
   describe('A closed HDT document', function () {
     var document;
     before(function (done) {

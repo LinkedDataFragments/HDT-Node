@@ -86,6 +86,20 @@ hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
 });
 ```
 
+### Autocomplete over a specific position
+Retrieve a limited list of suggested IRIs or literals which match a given pattern over a certain position which can have as a value only one of the following: `'subject'`, `'predicate'` or `'object'`. The pattern occurs in the beginning of the results only. Passing arguments are a pattern, a limit, the position and a callback.
+
+```JavaScript
+hdtDocument.findTerms({prefix: 'http://example.org/', limit:100, position: 'object'},//position can be either 'subject','predicate' or 'object'
+    function (error, suggestions) {
+      if (error) console.error('Error!', error)
+      console.log('Found ' + suggestions.length + ' suggestions');
+      hdtDocument.close();
+    });
+});
+```
+
+
 ## Standalone utility
 The standalone utility `hdt` allows you to query HDT files from the command line.
 <br>
