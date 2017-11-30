@@ -53,6 +53,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     // Create prototype
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
+    Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "close",           Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -309,8 +310,63 @@ NAN_METHOD(HdtDocument::SearchLiterals) {
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
 }
 
+/******** HdtDocument#_SearchTerms ********/
 
+class SearchTermsWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  string base;
+  uint32_t limit;
+  hdt::TripleComponentRole position;
+  Persistent<Object> self;
+  // Callback return values
+  vector<string> suggestions;
+public:
+  SearchTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
+                    Local<Object> self)
+    : Nan::AsyncWorker(callback),
+      document(document), base(base), limit(limit), position((TripleComponentRole) posId) {
+        SaveToPersistent("self", self);
+      };
 
+  void Execute() {
+    try {
+      Dictionary* dict = document->GetHDT()->getDictionary();
+      dict->getSuggestions((char *) base.c_str(), position, suggestions, limit);
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    // Convert the suggestions into a JavaScript array
+    uint32_t count = 0;
+    Local<Array> suggestionsArray = Nan::New<Array>(suggestions.size());
+    for (vector<string>::const_iterator it = suggestions.begin(); it != suggestions.end(); it++)
+      Nan::Set(suggestionsArray, count++, Nan::New(*it).ToLocalChecked());
+
+    // Send the JavaScript array and estimated total count through the callback
+    const unsigned argc = 2;
+    Local<Value> argv[argc] = { Nan::Null(), suggestionsArray};
+    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+};
+
+// Searches terms based on a given string over a specific position.
+// JavaScript signature: HdtDocument#_SearchTerms(string, limit, position, callback)
+NAN_METHOD(HdtDocument::SearchTerms) {
+  assert(info.Length() == 5);
+  Nan::AsyncQueueWorker(new SearchTermsWorker(Unwrap<HdtDocument>(info.This()),
+    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
+    new Nan::Callback(info[3].As<Function>()),
+    info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+}
 
 /******** HdtDocument#features ********/
 

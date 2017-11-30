@@ -71,6 +71,19 @@ hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
 });
 ```
 
+### Search terms starting with a prefix
+Find terms (literals and IRIs) that start with a given prefix.
+
+```JavaScript
+hdtDocument.searchTerms({ prefix: 'http://example.org/', limit: 100, position: 'object' },
+    function (error, suggestions) {
+      if (error) console.error('Error!', error)
+      console.log('Found ' + suggestions.length + ' suggestions');
+      hdtDocument.close();
+    });
+});
+```
+
 ### Searching literals containing a substring
 In an HDT file that was [generated with an FM index](https://github.com/LinkedDataFragments/hdt-cpp/blob/master/hdt-lib/presets/fmindex.hdtcfg),
 you can search for literals that contain a certain substring.
