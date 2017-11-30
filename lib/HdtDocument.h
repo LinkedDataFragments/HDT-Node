@@ -34,8 +34,8 @@ class HdtDocument : public node::ObjectWrap {
   static NAN_METHOD(SearchTriples);
   // HdtDocument#_searchLiterals(substring, offset, limit, callback, self)
   static NAN_METHOD(SearchLiterals);
-  // HdtDocument#_findTerms()
-  static NAN_METHOD(findTerms);
+  // HdtDocument#_searchTerms()
+  static NAN_METHOD(SearchTerms);
   // HdtDocument#_features
   static NAN_PROPERTY_GETTER(Features);
   // HdtDocument#close([callback], [self])

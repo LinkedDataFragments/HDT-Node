@@ -99,7 +99,7 @@ describe('hdt', function () {
 
     describe('getting suggestions', function () {
       it('Should have correct results for predicate position', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
+        document.searchTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(3);
@@ -108,7 +108,7 @@ describe('hdt', function () {
           });
       });
       it('Should have correct results for object position', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' },
+        document.searchTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions[0].should.equal('http://example.org/o001');
@@ -117,7 +117,7 @@ describe('hdt', function () {
           });
       });
       it('Should get suggestions for literals', function (done) {
-        document.findTerms({ prefix: '"a', position : 'object' },
+        document.searchTerms({ prefix: '"a', position : 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(8);
@@ -125,7 +125,7 @@ describe('hdt', function () {
           });
       });
       it('Should 100 results on empty match', function (done) {
-        document.findTerms({ prefix: '', position: 'object' },
+        document.searchTerms({ prefix: '', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(100);
@@ -133,7 +133,7 @@ describe('hdt', function () {
           });
       });
       it('Should 100 results when prefix is not defined', function (done) {
-        document.findTerms({ position: 'object' },
+        document.searchTerms({ position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(100);
@@ -141,7 +141,7 @@ describe('hdt', function () {
           });
       });
       it('Should return 0 results on negative limit', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' },
+        document.searchTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -149,7 +149,7 @@ describe('hdt', function () {
           });
       });
       it('Should return 0 results invalid limit val', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' },
+        document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' },
           function (error, suggestions) {
             if (error) return done(error);
             suggestions.should.have.lengthOf(0);
@@ -157,7 +157,7 @@ describe('hdt', function () {
           });
       });
       it('Should throw on invalid position', function (done) {
-        document.findTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' },
+        document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' },
           function (error, suggestions) {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');

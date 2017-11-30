@@ -53,7 +53,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     // Create prototype
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
-    Nan::SetPrototypeMethod(constructorTemplate, "_findTerms", findTerms);
+    Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "close",           Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -310,9 +310,9 @@ NAN_METHOD(HdtDocument::SearchLiterals) {
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
 }
 
-/******** HdtDocument#_findTerms ********/
+/******** HdtDocument#_SearchTerms ********/
 
-class findTermsWorker : public Nan::AsyncWorker {
+class SearchTermsWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
   string base;
@@ -322,8 +322,8 @@ class findTermsWorker : public Nan::AsyncWorker {
   // Callback return values
   vector<string> suggestions;
 public:
-  findTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
-                      Local<Object> self)
+  SearchTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
+                    Local<Object> self)
     : Nan::AsyncWorker(callback),
       document(document), base(base), limit(limit), position((TripleComponentRole) posId) {
         SaveToPersistent("self", self);
@@ -332,7 +332,6 @@ public:
   void Execute() {
     try {
       Dictionary* dict = document->GetHDT()->getDictionary();
-      // Retrieve suggestions
       dict->getSuggestions((char *) base.c_str(), position, suggestions, limit);
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
@@ -359,12 +358,12 @@ public:
   }
 };
 
-// Gets suggestions based on a given string over a specific position.
-// JavaScript signature: HdtDocument#_findTerms(string, limit, position, callback)
-NAN_METHOD(HdtDocument::findTerms) {
+// Searches terms based on a given string over a specific position.
+// JavaScript signature: HdtDocument#_SearchTerms(string, limit, position, callback)
+NAN_METHOD(HdtDocument::SearchTerms) {
   assert(info.Length() == 5);
-  Nan::AsyncQueueWorker(new findTermsWorker(Unwrap<HdtDocument>(info.This()),
-    *Nan::Utf8String(info[0]),  info[1]->Uint32Value(), info[2]->Uint32Value(),
+  Nan::AsyncQueueWorker(new SearchTermsWorker(Unwrap<HdtDocument>(info.This()),
+    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
     new Nan::Callback(info[3].As<Function>()),
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
 }
