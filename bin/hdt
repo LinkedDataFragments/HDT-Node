@@ -26,18 +26,16 @@ var parts = /^\s*<?([^\s>]*)>?\s*<?([^\s>]*)>?\s*<?([^]*?)>?\s*$/.exec(query),
 var writer = new N3.Writer(process.stdout, { format: format, end: false });
 
 // Load the HDT file
-hdt.fromFile(hdtFile, function (error, hdtDocument) {
-  if (error) console.error(error.message), process.exit(1);
-  // Search the HDT document for the given pattern
-  hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit },
-    function (error, triples, totalCount, exactCount) {
-      // Write all matching triples
-      if (error) console.error('Error:', error.message), process.exit(1);
-      process.stdout.write('# Total matches: ' + totalCount +
-                           (exactCount ? '' : ' (estimated)') + '\n');
-      writer.addTriples(triples);
+hdt.fromFile(hdtFile)
+  .then(hdtDocument => hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit }))
+  .then(
+    results => {
+      process.stdout.write('# Total matches: ' + results.totalCount +
+                           (results.exactCount ? '' : ' (estimated)') + '\n');
+      writer.addTriples(results.triples);
       writer.end();
-      hdtDocument.close();
-    });
-});
-
+    },
+  (error) => {
+    console.error(error.message), process.exit(1);
+  }
+);

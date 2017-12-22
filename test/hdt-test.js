@@ -11,72 +11,42 @@ describe('hdt', function () {
 
   describe('creating a new HDT document with fromFile', function () {
     describe('with a non-string argument', function () {
-      it('should throw an error', function (done) {
-        var self = {};
-        hdt.fromFile(null, function (error) {
-          this.should.equal(self);
+      it('should throw an error', function () {
+        return hdt.fromFile(null).then(() => Promise.reject(new Error('Expected an error')), (error) => {
           error.should.be.an.Error;
           error.message.should.equal('Invalid filename: null');
-          done();
-        }, self);
-      });
-    });
-
-    describe('with a non-existing file as argument', function () {
-      it('should throw an error', function (done) {
-        var self = {};
-        hdt.fromFile('abc', function (error) {
-          this.should.equal(self);
-          error.should.be.an.Error;
-          error.message.should.equal('Could not open HDT file "abc"');
-          done();
-        }, self);
-      });
-    });
-
-    describe('with a non-HDT file as argument', function () {
-      it('should throw an error', function (done) {
-        var self = {};
-        hdt.fromFile('./test/hdt-test.js', function (error) {
-          this.should.equal(self);
-          error.should.be.an.Error;
-          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
-          done();
-        }, self);
-      });
-    });
-
-    describe('without self value', function () {
-      it('should invoke the callback', function (done) {
-        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-          hdtDocument.close();
-          done(error);
         });
       });
     });
 
-    describe('with a self value', function () {
-      it('should invoke the callback with that value as `this`', function (done) {
-        var self = {};
-        hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-          this.should.equal(self);
-          hdtDocument.close();
-          done(error);
-        }, self);
+    describe('with a non-existing file as argument', function () {
+      it('should throw an error', function () {
+        return hdt.fromFile('abc').then(() => Promise.reject(new Error('Expected an error')), (error) => {
+          error.should.be.an.Error;
+          error.message.should.equal('Could not open HDT file "abc"');
+        });
+      });
+    });
+
+    describe('with a non-HDT file as argument', function () {
+      it('should throw an error', function () {
+        return hdt.fromFile('./test/hdt-test.js').then(() => Promise.reject(new Error('Expected an error')), (error) => {
+          error.should.be.an.Error;
+          error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
+        });
       });
     });
   });
 
   describe('An HDT document for an example HDT file', function () {
     var document;
-    before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+    before(function () {
+      return hdt.fromFile('./test/test.hdt').then(hdtDocument => {
         document = hdtDocument;
-        done(error);
       });
     });
-    after(function (done) {
-      document.close(done);
+    after(function () {
+      return document.close();
     });
 
     describe('asked for supported features', function () {
@@ -98,99 +68,61 @@ describe('hdt', function () {
     });
 
     describe('getting suggestions', function () {
-      it('Should have correct results for predicate position', function (done) {
-        document.searchTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(3);
-            suggestions[0].should.equal('http://example.org/p1');
-            done();
-          });
+      it('Should have correct results for predicate position', function () {
+        return document.searchTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' }).then(suggestions => {
+          suggestions.should.have.lengthOf(3);
+          suggestions[0].should.equal('http://example.org/p1');
+        });
       });
-      it('Should have correct results for object position', function (done) {
-        document.searchTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions[0].should.equal('http://example.org/o001');
-            suggestions.should.have.lengthOf(2);
-            done();
-          });
+      it('Should have correct results for object position', function () {
+        return document.searchTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' }).then(suggestions => {
+          suggestions[0].should.equal('http://example.org/o001');
+          suggestions.should.have.lengthOf(2);
+        });
       });
-      it('Should get suggestions for literals', function (done) {
-        document.searchTerms({ prefix: '"a', position : 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(8);
-            done();
-          });
+      it('Should get suggestions for literals', function () {
+        return document.searchTerms({ prefix: '"a', position : 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(8);
+        });
       });
-      it('Should 100 results on empty match', function (done) {
-        document.searchTerms({ prefix: '', position: 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(100);
-            done();
-          });
+      it('Should 100 results on empty match', function () {
+        return document.searchTerms({ prefix: '', position: 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(100);
+        });
       });
-      it('Should 100 results when prefix is not defined', function (done) {
-        document.searchTerms({ position: 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(100);
-            done();
-          });
+      it('Should 100 results when prefix is not defined', function () {
+        return document.searchTerms({ position: 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(100);
+        });
       });
-      it('Should return 0 results on negative limit', function (done) {
-        document.searchTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(0);
-            done();
-          });
+      it('Should return 0 results on negative limit', function () {
+        return document.searchTerms({ prefix: 'http://example.org/', limit: -1, position: 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(0);
+        });
       });
-      it('Should return 0 results invalid limit val', function (done) {
-        document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' },
-          function (error, suggestions) {
-            if (error) return done(error);
-            suggestions.should.have.lengthOf(0);
-            done();
-          });
+      it('Should return 0 results invalid limit val', function () {
+        return document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(0);
+        });
       });
-      it('Should throw on invalid position', function (done) {
-        document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' },
-          function (error, suggestions) {
+      it('Should throw on invalid position', function () {
+        return document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          (error) => {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');
-            if (error) return done();
-            done(new Error('expected an error'));
-          });
+          }
+        );
       });
     });
     describe('being searched', function () {
-      describe('without self value', function () {
-        it('should invoke the callback with the HDT document as `this`', function (done) {
-          document.searchTriples('a', 'b', 'c', function (error) {
-            this.should.equal(document);
-            done(error);
-          });
-        });
-      });
-
-      describe('with a self value', function () {
-        var self = {};
-        it('should invoke the callback with that value as `this`', function (done) {
-          document.searchTriples('a', 'b', 'c', function (error) {
-            this.should.equal(self);
-            done(error);
-          }, self);
-        });
-      });
-
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
-        before(function (done) {
-          document.searchTriples('a', null, null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+        before(function () {
+          return document.searchTriples('a', null, null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -205,9 +137,12 @@ describe('hdt', function () {
 
       describe('with pattern null null null', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, null,
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, null, null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -230,9 +165,12 @@ describe('hdt', function () {
 
       describe('with pattern null null null, offset 0 and limit 10', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, null, { offset: 0, limit: 10 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 0, limit: 10 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -255,9 +193,12 @@ describe('hdt', function () {
 
       describe('with pattern null null null, offset 10 and limit 5', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, null, { offset: 10, limit: 5 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 10, limit: 5 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -280,9 +221,12 @@ describe('hdt', function () {
 
       describe('with pattern null null null, offset 200 and limit 5', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, null, { offset: 200, limit: 5 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 200, limit: 5 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -301,9 +245,12 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', null, null,
-                          function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', null, null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -330,9 +277,10 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 ex:p1 null', function () {
         var triples;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', 'http://example.org/p1', null,
-                          function (error, t, c, e) { triples = t; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', 'http://example.org/p1', null).then(result => {
+            triples = result.triples;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -351,9 +299,10 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 ex:p1 ex:o010', function () {
         var triples;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', 'http://example.org/p1', 'http://example.org/o010',
-                          function (error, t, c, e) { triples = t; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', 'http://example.org/p1', 'http://example.org/o010').then(result => {
+            triples = result.triples;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -371,9 +320,10 @@ describe('hdt', function () {
       // Link to issue -> https://github.com/rdfhdt/hdt-cpp/issues/84
       describe('with pattern null null ex:o010', function () {
         var triples;
-        before(function (done) {
-          document.searchTriples(null, null, 'http://example.org/o010',
-                          function (error, t, c, e) { triples = t; done(error); });
+        before(function () {
+          return document.searchTriples(null, null, 'http://example.org/o010').then(result => {
+            triples = result.triples;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -388,9 +338,12 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', null, null, { offset: 2, limit: 1 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', null, null, { offset: 2, limit: 1 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -413,9 +366,12 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 null null, offset 200 and limit 1', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', null, null, { offset: 200, limit: 1 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', null, null, { offset: 200, limit: 1 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -434,9 +390,12 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 ?p ?o', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples('http://example.org/s2', '?p', '?o',
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples('http://example.org/s2', '?p', '?o').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -463,9 +422,12 @@ describe('hdt', function () {
 
       describe('with pattern null ex:p2 null, offset 2, limit 2', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, 'http://example.org/p2', null, { offset: 2, limit: 2 },
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, 'http://example.org/p2', null, { offset: 2, limit: 2 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -492,9 +454,12 @@ describe('hdt', function () {
 
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, 'http://example.org/p2', null,
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, 'http://example.org/p2', null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -521,9 +486,12 @@ describe('hdt', function () {
 
       describe('with pattern null ex:p3 null', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, 'http://example.org/p3', null,
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null, 'http://example.org/p3', null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -590,9 +558,12 @@ describe('hdt', function () {
 
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, '"a"^^http://example.org/literal',
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null,  null, '"a"^^http://example.org/literal').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -615,10 +586,14 @@ describe('hdt', function () {
 
       describe('with pattern null null ex:o012', function () {
         var triples, totalCount, hasExactCount;
-        before(function (done) {
-          document.searchTriples(null, null, 'http://example.org/o012',
-            function (error, t, c, e) { triples = t; totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.searchTriples(null,  null, 'http://example.org/o012').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
+
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array;
@@ -640,30 +615,13 @@ describe('hdt', function () {
     });
 
     describe('being counted', function () {
-      describe('without self value', function () {
-        it('should invoke the callback with the HDT document as `this`', function (done) {
-          document.countTriples('a', 'b', 'c', function (error) {
-            this.should.equal(document);
-            done(error);
-          });
-        });
-      });
-
-      describe('with a self value', function () {
-        var self = {};
-        it('should invoke the callback with that value as `this`', function (done) {
-          document.countTriples('a', 'b', 'c', function (error) {
-            this.should.equal(self);
-            done(error);
-          }, self);
-        });
-      });
-
       describe('with a non-existing pattern', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples('a', null, null,
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples('a', null, null).then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 0', function () {
@@ -677,9 +635,11 @@ describe('hdt', function () {
 
       describe('with pattern null null null', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples(null, null, null,
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples(null, null, null).then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 132', function () {
@@ -693,9 +653,11 @@ describe('hdt', function () {
 
       describe('with pattern ex:s2 null null', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples('http://example.org/s2', null, null,
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples('http://example.org/s2', null, null).then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 10', function () {
@@ -709,9 +671,11 @@ describe('hdt', function () {
 
       describe('with pattern null ex:p2 null', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples(null, 'http://example.org/p2', null,
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples(null, 'http://example.org/p2', null).then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 10', function () {
@@ -725,9 +689,11 @@ describe('hdt', function () {
 
       describe('with pattern null ex:p3 null', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples(null, 'http://example.org/p3', null,
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples(null, 'http://example.org/p3', null).then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 12', function () {
@@ -741,9 +707,11 @@ describe('hdt', function () {
 
       describe('with pattern null null ex:o012', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples(null, null, 'http://example.org/o012',
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples(null, null, 'http://example.org/o012').then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 1', function () {
@@ -757,9 +725,11 @@ describe('hdt', function () {
 
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var totalCount, hasExactCount;
-        before(function (done) {
-          document.countTriples(null, null, '"a"^^http://example.org/literal',
-                                function (error, c, e) { totalCount = c; hasExactCount = e; done(error); });
+        before(function () {
+          return document.countTriples(null, null, '"a"^^http://example.org/literal').then(result => {
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
         });
 
         it('should return 1', function () {
@@ -771,61 +741,41 @@ describe('hdt', function () {
         });
       });
     });
-
-    describe('being closed', function () {
-      var self = {}, callbackThis, callbackArgs;
-      before(function (done) {
-        document.close(function (error) {
-          callbackThis = this, callbackArgs = arguments;
-          done(error);
-        }, self);
-      });
-
-      it('should not pass an error through the callback', function () {
-        callbackArgs.should.have.length(1);
-        callbackArgs.should.have.property(0, null);
-      });
-
-      it('should invoke the callback with the second argument as `this`', function () {
-        callbackThis.should.equal(self);
-      });
-    });
   });
 
   describe('An HDT document without a literal dictionary', function () {
     var document;
-    before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+    before(function () {
+      return hdt.fromFile('./test/test.hdt').then(hdtDocument => {
         document = hdtDocument;
-        done(error);
       });
     });
-    after(function (done) {
-      document.close(done);
+    after(function () {
+      return document.close();
     });
 
     describe('being searched for literals', function () {
-      it('should throw an error', function (done) {
-        document.searchLiterals('abc', function (error) {
-          this.should.equal(document);
-          error.should.be.an.instanceOf(Error);
-          error.message.should.equal('The HDT document does not support literal search');
-          done();
-        });
+      it('should throw an error', function () {
+        return document.searchLiterals('abc').then(
+          () => Promise.reject(new Error('expected an error')),
+          (error) => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('The HDT document does not support literal search');
+          }
+        );
       });
     });
   });
 
   describe('An HDT document with a literal dictionary', function () {
     var document;
-    before(function (done) {
-      hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
+    before(function () {
+      return hdt.fromFile('./test/literals.hdt').then(hdtDocument => {
         document = hdtDocument;
-        done(error);
       });
     });
-    after(function (done) {
-      document.close(done);
+    after(function () {
+      return document.close();
     });
 
     describe('asked for supported features', function () {
@@ -849,9 +799,11 @@ describe('hdt', function () {
     describe('being searched', function () {
       describe('for an existing subject', function () {
         var triples, totalCount;
-        before(function (done) {
-          document.searchTriples('s', null, null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+        before(function () {
+          return document.searchTriples('s', null, null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return an array with matches', function () {
@@ -866,9 +818,11 @@ describe('hdt', function () {
 
       describe('for a non-existing subject', function () {
         var triples, totalCount;
-        before(function (done) {
-          document.searchTriples('x', null, null,
-            function (error, t, c) { triples = t; totalCount = c; done(error); });
+        before(function () {
+          return document.searchTriples('x', null, null).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return an array without matches', function () {
@@ -883,9 +837,11 @@ describe('hdt', function () {
 
       describe('for the empty literal', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('',
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('').then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return the empty array', function () {
@@ -899,9 +855,11 @@ describe('hdt', function () {
 
       describe('for the literal "a"', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('a',
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('a').then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return literals containing "a"', function () {
@@ -915,10 +873,13 @@ describe('hdt', function () {
 
       describe('for the literal "b"', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('b',
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('b').then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
+
 
         it('should return literals containing "b" (with duplicates for multiple matches)', function () {
           literals.should.eql([
@@ -934,9 +895,11 @@ describe('hdt', function () {
 
       describe('for the literal "b" with a limit', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('b', { limit: 2 },
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('b', { limit : 2 }).then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return literals containing "b"', function () {
@@ -950,10 +913,13 @@ describe('hdt', function () {
 
       describe('for the literal "b" with an offset', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('b', { offset: 4 },
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('b', { offset: 4 }).then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
+
 
         it('should return literals containing "b"', function () {
           literals.should.eql(['"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
@@ -966,9 +932,11 @@ describe('hdt', function () {
 
       describe('for the literal "b" with a very large offset', function () {
         var literals, totalCount;
-        before(function (done) {
-          document.searchLiterals('b', { offset: 5000 },
-            function (error, l, c) { literals = l, totalCount = c; done(error); });
+        before(function () {
+          return document.searchLiterals('b', { offset: 5000 }).then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
         });
 
         it('should return the empty array', function () {
@@ -983,10 +951,13 @@ describe('hdt', function () {
 
     describe('for the literal "b" with an offset and a limit', function () {
       var literals, totalCount;
-      before(function (done) {
-        document.searchLiterals('b', { offset: 4, limit: 2 },
-          function (error, l, c) { literals = l, totalCount = c; done(error); });
+      before(function () {
+        return document.searchLiterals('b', { offset: 4, limit: 2 }).then(result => {
+          literals = result.literals;
+          totalCount = result.totalCount;
+        });
       });
+
 
       it('should return literals containing "b"', function () {
         literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
@@ -999,32 +970,34 @@ describe('hdt', function () {
   });
   describe('A closed HDT document', function () {
     var document;
-    before(function (done) {
-      hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+    before(function () {
+      return hdt.fromFile('./test/test.hdt').then(hdtDocument => {
         document = hdtDocument;
-        document.close(done);
+        return document.close();
       });
     });
 
     describe('being searched for triples', function () {
-      it('should throw an error', function (done) {
-        document.searchTriples(null, null, null, function (error) {
-          this.should.equal(document);
-          error.should.be.an.instanceOf(Error);
-          error.message.should.equal('The HDT document cannot be read because it is closed');
-          done();
-        });
+      it('should throw an error', function () {
+        return document.searchTriples(null, null, null).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('The HDT document cannot be read because it is closed');
+          }
+        );
       });
     });
 
     describe('being searched for literals', function () {
-      it('should throw an error', function (done) {
-        document.searchLiterals('abc', function (error) {
-          this.should.equal(document);
-          error.should.be.an.instanceOf(Error);
-          error.message.should.equal('The HDT document cannot be read because it is closed');
-          done();
-        });
+      it('should throw an error', function () {
+        return document.searchLiterals('abc').then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('The HDT document cannot be read because it is closed');
+          }
+        );
       });
     });
   });
