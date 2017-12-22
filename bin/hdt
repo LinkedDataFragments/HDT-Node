@@ -35,7 +35,7 @@ hdt.fromFile(hdtFile)
       writer.addTriples(results.triples);
       writer.end();
     },
-  (error) => {
-    console.error(error.message), process.exit(1);
-  }
-);
+    error => {
+      console.error(error.message), process.exit(1);
+    }
+  );

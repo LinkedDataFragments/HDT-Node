@@ -12,7 +12,7 @@ describe('hdt', function () {
   describe('creating a new HDT document with fromFile', function () {
     describe('with a non-string argument', function () {
       it('should throw an error', function () {
-        return hdt.fromFile(null).then(() => Promise.reject(new Error('Expected an error')), (error) => {
+        return hdt.fromFile(null).then(() => Promise.reject(new Error('Expected an error')), error => {
           error.should.be.an.Error;
           error.message.should.equal('Invalid filename: null');
         });
@@ -21,7 +21,7 @@ describe('hdt', function () {
 
     describe('with a non-existing file as argument', function () {
       it('should throw an error', function () {
-        return hdt.fromFile('abc').then(() => Promise.reject(new Error('Expected an error')), (error) => {
+        return hdt.fromFile('abc').then(() => Promise.reject(new Error('Expected an error')), error => {
           error.should.be.an.Error;
           error.message.should.equal('Could not open HDT file "abc"');
         });
@@ -30,7 +30,7 @@ describe('hdt', function () {
 
     describe('with a non-HDT file as argument', function () {
       it('should throw an error', function () {
-        return hdt.fromFile('./test/hdt-test.js').then(() => Promise.reject(new Error('Expected an error')), (error) => {
+        return hdt.fromFile('./test/hdt-test.js').then(() => Promise.reject(new Error('Expected an error')), error => {
           error.should.be.an.Error;
           error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
         });
@@ -108,7 +108,7 @@ describe('hdt', function () {
       it('Should throw on invalid position', function () {
         return document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'bla' }).then(
           () => Promise.reject(new Error('Expected an error')),
-          (error) => {
+          error => {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');
           }
@@ -758,7 +758,7 @@ describe('hdt', function () {
       it('should throw an error', function () {
         return document.searchLiterals('abc').then(
           () => Promise.reject(new Error('expected an error')),
-          (error) => {
+          error => {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('The HDT document does not support literal search');
           }
@@ -979,8 +979,8 @@ describe('hdt', function () {
 
     describe('being searched for triples', function () {
       it('should throw an error', function () {
-        return document.searchTriples(null, null, null).then(
-          () => Promise.reject(new Error('Expected an error')),
+        return document.searchTriples(null, null, null).then(() =>
+            Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('The HDT document cannot be read because it is closed');
@@ -991,8 +991,8 @@ describe('hdt', function () {
 
     describe('being searched for literals', function () {
       it('should throw an error', function () {
-        return document.searchLiterals('abc').then(
-          () => Promise.reject(new Error('Expected an error')),
+        return document.searchLiterals('abc').then(() =>
+            Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
             error.message.should.equal('The HDT document cannot be read because it is closed');
