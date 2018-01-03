@@ -1,4 +1,8 @@
 # HDT for Node.js
+[![npm version](https://badge.fury.io/js/hdt.svg)](https://www.npmjs.com/package/hdt)
+[![Build Status](https://travis-ci.org/RubenVerborgh/HDT-Node.svg?branch=master)](https://travis-ci.org/RubenVerborgh/HDT-Node)
+[![Dependency Status](https://david-dm.org/RubenVerborgh/HDT-Node.svg)](https://david-dm.org/RubenVerborgh/HDT-Node)
+[![devDependency Status](https://david-dm.org/RubenVerborgh/HDT-Node/dev-status.svg)](https://david-dm.org/RubenVerborgh/HDT-Node#info=devDependencies)
 
 [HDT (Header Dictionary Triples)](http://www.rdfhdt.org/) is a compressed format
 for [RDF triples](http://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/#data-model).
