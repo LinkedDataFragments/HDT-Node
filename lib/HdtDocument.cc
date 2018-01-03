@@ -54,7 +54,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
-    Nan::SetPrototypeMethod(constructorTemplate, "close",           Close);
+    Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),

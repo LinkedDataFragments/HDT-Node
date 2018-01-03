@@ -2,7 +2,12 @@
   env: {
     node: true,
   },
-
+  parserOptions: {
+    ecmaVersion: 6
+  },
+  globals: {
+    Promise: true
+  },
   rules: {
     // Possible Errors
     comma-dangle: [2, "always-multiline"],

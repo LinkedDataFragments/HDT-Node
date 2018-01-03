@@ -18,70 +18,73 @@ $ npm install hdt
 Then require the library.
 
 ```JavaScript
-var hdt = require('hdt');
+const hdt = require('hdt');
 ```
 
 ### Opening and closing an HDT document
 Open an HDT document with `hdt.fromFile`,
-which takes filename and callback arguments.
-The HDT document will be passed to the callback.
+which takes a filename as argument and returns the HDT document in a promise.
 Close the document with `close`.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
+hdt.fromFile('./test/test.hdt').then(function(hdtDocument) {
   // Don't forget to close the document when you're done
-  hdtDocument.close();
+  return hdtDocument.close();
 });
 ```
 
 ### Searching for triples matching a pattern
 Search for triples with `search`,
-which takes subject, predicate, object, options, and callback arguments.
+which takes subject, predicate, object, and options arguments.
 Subject, predicate, and object can be IRIs or literals,
 [represented as simple strings](https://github.com/RubenVerborgh/N3.js#triple-representation).
 If any of these parameters is `null` or a variable, it is considered a wildcard.
 Optionally, an offset and limit can be passed in an options object,
 selecting only the specified subset.
 
-The callback returns an array of triples that match the pattern.
-A third parameter indicates an estimate of the total number of matching triples.
+The promise returns an object with an array of triples, the total number of expected triples for the pattern,
+and whether the total count is an estimate or exact.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-  hdtDocument.searchTriples('http://example.org/s1', null, null, { offset: 0, limit: 10 },
-    function (error, triples, totalCount) {
-      console.log('Approximately ' + totalCount + ' triples match the pattern.');
-      triples.forEach(function (triple) { console.log(triple); });
-      hdtDocument.close();
-    });
-});
+var doc;
+hdt.fromFile('./test/test.hdt')
+  .then(function(hdtDocument) {
+    doc = hdtDocument;
+    return doc.searchTriples('http://example.org/s1', null, null, { offset: 0, limit: 10 })
+  })
+  .then(function(result) {
+    console.log('Approximately ' + result.totalCount + ' triples match the pattern.');
+    result.triples.forEach(function (triple) { console.log(triple); });
+    return doc.close();
+  });
 ```
 
 ### Counting triples matching a pattern
 Retrieve an estimate of the total number of triples matching a pattern with `count`,
-which takes subject, predicate, object, and callback arguments.
+which takes subject, predicate, and object arguments.
 
 ```JavaScript
-hdt.fromFile('./test/test.hdt', function (error, hdtDocument) {
-  hdtDocument.countTriples('http://example.org/s1', null, null,
-    function (error, totalCount) {
-      console.log('Approximately ' + totalCount + ' triples match the pattern.');
-      hdtDocument.close();
-    });
-});
+var doc;
+hdt.fromFile('./test/test.hdt')
+  .then(function(hdtDocument) {
+    doc = hdtDocument;
+    return doc.countTriples('http://example.org/s1', null, null);
+  })
+  .then(function(result) {
+    console.log('Approximately ' + result.totalCount + ' triples match the pattern.');
+    return doc.close()
+  });
 ```
 
 ### Search terms starting with a prefix
 Find terms (literals and IRIs) that start with a given prefix.
 
 ```JavaScript
-hdtDocument.searchTerms({ prefix: 'http://example.org/', limit: 100, position: 'object' },
-    function (error, suggestions) {
-      if (error) console.error('Error!', error)
-      console.log('Found ' + suggestions.length + ' suggestions');
-      hdtDocument.close();
-    });
-});
+hdtDocument.searchTerms({ prefix: 'http://example.org/', limit: 100, position: 'object' })
+  .then(function(suggestions) {
+    console.log('Found ' + suggestions.length + ' suggestions');
+    return hdtDocument.close();
+  });
 ```
 
 ### Searching literals containing a substring
@@ -89,14 +92,17 @@ In an HDT file that was [generated with an FM index](https://github.com/LinkedDa
 you can search for literals that contain a certain substring.
 
 ```JavaScript
-hdt.fromFile('./test/literals.hdt', function (error, hdtDocument) {
-  hdtDocument.searchLiterals('b', { offset: 0, limit: 5 },
-    function (error, literals, totalCount) {
-      console.log('Approximately ' + totalCount + ' literals contain the pattern.');
-      literals.forEach(function (literal) { console.log(literal); });
-      hdtDocument.close();
-    });
-});
+var doc;
+hdt.fromFile('./test/test.hdt')
+  .then(function(hdtDocument) {
+    doc = hdtDocument;
+    return doc.searchLiterals('b', { offset: 0, limit: 5 });
+  })
+  .then(function(result) {
+    console.log('Approximately ' + result.totalCount + ' literals contain the pattern.');
+    result.literals.forEach(function (literal) { console.log(literal); });
+    return doc.close();
+  });
 ```
 
 ## Standalone utility
