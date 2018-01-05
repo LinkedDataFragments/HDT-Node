@@ -452,6 +452,31 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null ex:p2 null, offset 200', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, 'http://example.org/p2', null, { offset: 200 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an empty array', function () {
+          triples.should.be.an.Array();
+          triples.should.be.empty();
+          triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
