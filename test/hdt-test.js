@@ -619,7 +619,6 @@ describe('hdt', function () {
           });
         });
 
-
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
@@ -635,6 +634,59 @@ describe('hdt', function () {
 
         it('should be an exact count', function () {
           hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:s3 null ex:o001', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples('http://example.org/s3',  null, 'http://example.org/o001').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(1);
+          triples[0].should.eql({
+            subject:   'http://example.org/s3',
+            predicate: 'http://example.org/p2',
+            object:    'http://example.org/o001' });
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(false);
+        });
+      });
+
+      describe('with pattern ex:s3 null ex:o001 and offset 1', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples('http://example.org/s3',  null, 'http://example.org/o001', { offset : 1 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(0);
+          triples.should.be.empty();
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(false);
         });
       });
     });
