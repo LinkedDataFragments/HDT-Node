@@ -5,7 +5,7 @@ var hdt = require('../lib/hdt');
 describe('hdt', function () {
   describe('The hdt module', function () {
     it('should be an object', function () {
-      hdt.should.be.an.Object;
+      hdt.should.be.an.Object();
     });
   });
 
@@ -13,7 +13,7 @@ describe('hdt', function () {
     describe('with a non-string argument', function () {
       it('should throw an error', function () {
         return hdt.fromFile(null).then(() => Promise.reject(new Error('Expected an error')), error => {
-          error.should.be.an.Error;
+          error.should.be.an.Error();
           error.message.should.equal('Invalid filename: null');
         });
       });
@@ -22,7 +22,7 @@ describe('hdt', function () {
     describe('with a non-existing file as argument', function () {
       it('should throw an error', function () {
         return hdt.fromFile('abc').then(() => Promise.reject(new Error('Expected an error')), error => {
-          error.should.be.an.Error;
+          error.should.be.an.Error();
           error.message.should.equal('Could not open HDT file "abc"');
         });
       });
@@ -31,7 +31,7 @@ describe('hdt', function () {
     describe('with a non-HDT file as argument', function () {
       it('should throw an error', function () {
         return hdt.fromFile('./test/hdt-test.js').then(() => Promise.reject(new Error('Expected an error')), error => {
-          error.should.be.an.Error;
+          error.should.be.an.Error();
           error.message.should.equal('The file "./test/hdt-test.js" is not a valid HDT file');
         });
       });
@@ -55,15 +55,15 @@ describe('hdt', function () {
       });
 
       it('should support searchTriples', function () {
-        document.features.searchTriples.should.be.true;
+        document.features.searchTriples.should.be.true();
       });
 
       it('should support countTriples', function () {
-        document.features.countTriples.should.be.true;
+        document.features.countTriples.should.be.true();
       });
 
       it('should not support searchLiterals', function () {
-        document.features.searchLiterals.should.be.false;
+        document.features.searchLiterals.should.be.false();
       });
     });
 
@@ -126,8 +126,8 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
-          triples.should.be.empty;
+          triples.should.be.an.Array();
+          triples.should.be.empty();
         });
 
         it('should estimate the total count as 0', function () {
@@ -146,7 +146,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(132);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
@@ -174,7 +174,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
@@ -202,7 +202,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(5);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
@@ -230,8 +230,8 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
-          triples.should.be.empty;
+          triples.should.be.an.Array();
+          triples.should.be.empty();
         });
 
         it('should estimate the total count as 132', function () {
@@ -254,7 +254,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
@@ -284,7 +284,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
@@ -306,7 +306,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
@@ -327,7 +327,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(3);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
@@ -347,7 +347,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
@@ -375,8 +375,8 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
-          triples.should.be.empty;
+          triples.should.be.an.Array();
+          triples.should.be.empty();
         });
 
         it('should estimate the total count as 10', function () {
@@ -399,7 +399,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s2',
@@ -431,7 +431,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(2);
           triples[0].should.eql({
             subject:   'http://example.org/s3',
@@ -488,7 +488,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
             subject:   'http://example.org/s3',
@@ -520,7 +520,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(12);
           triples[0].should.eql({
             subject:   'http://example.org/s4',
@@ -592,7 +592,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s4',
@@ -621,7 +621,7 @@ describe('hdt', function () {
 
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(1);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
@@ -809,15 +809,15 @@ describe('hdt', function () {
       });
 
       it('should support searchTriples', function () {
-        document.features.searchTriples.should.be.true;
+        document.features.searchTriples.should.be.true();
       });
 
       it('should support countTriples', function () {
-        document.features.countTriples.should.be.true;
+        document.features.countTriples.should.be.true();
       });
 
       it('should support searchLiterals', function () {
-        document.features.searchLiterals.should.be.true;
+        document.features.searchLiterals.should.be.true();
       });
     });
 
@@ -832,7 +832,7 @@ describe('hdt', function () {
         });
 
         it('should return an array with matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(9);
         });
 
@@ -851,7 +851,7 @@ describe('hdt', function () {
         });
 
         it('should return an array without matches', function () {
-          triples.should.be.an.Array;
+          triples.should.be.an.Array();
           triples.should.have.length(0);
         });
 
