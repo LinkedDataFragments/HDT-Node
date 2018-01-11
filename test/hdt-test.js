@@ -67,6 +67,27 @@ describe('hdt', function () {
       });
     });
 
+    describe('reading the Header', function () {
+      var triples, totalCount;
+      before(function () {
+        return document.readHeader().then(result => {
+          triples = result.triples;
+          totalCount = result.totalCount;
+        });
+      });
+      it('should return an array with matches', function () {
+        triples.should.be.an.Array();
+        triples.should.have.length(22);
+        triples[0].should.eql({
+          subject: '<file://test/test.ttl>',
+          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+          object: '<http://purl.org/HDT/hdt#Dataset>' });
+      });
+      it('should have a total count of 22', function () {
+        totalCount.should.equal(22);
+      });
+    });
+
     describe('getting suggestions', function () {
       it('Should have correct results for predicate position', function () {
         return document.searchTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' }).then(suggestions => {
@@ -115,6 +136,7 @@ describe('hdt', function () {
         );
       });
     });
+
     describe('being searched', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
@@ -873,6 +895,27 @@ describe('hdt', function () {
       });
     });
 
+    describe('reading the Header', function () {
+      var triples, totalCount;
+      before(function () {
+        return document.readHeader().then(result => {
+          triples = result.triples;
+          totalCount = result.totalCount;
+        });
+      });
+      it('should return an array with matches', function () {
+        triples.should.be.an.Array();
+        triples.should.have.length(28);
+        triples[0].should.eql({
+          subject: '<file://literals.ttl>',
+          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+          object: '<http://purl.org/HDT/hdt#Dataset>' });
+      });
+      it('should have a total count of 22', function () {
+        totalCount.should.equal(28);
+      });
+    });
+
     describe('being searched', function () {
       describe('for an existing subject', function () {
         var triples, totalCount;
@@ -1051,6 +1094,18 @@ describe('hdt', function () {
       return hdt.fromFile('./test/test.hdt').then(hdtDocument => {
         document = hdtDocument;
         return document.close();
+      });
+    });
+
+    describe('reading the Header', function () {
+      it('should throw an error', function () {
+        return document.readHeader().then(() =>
+            Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('The HDT document cannot be read because it is closed');
+          }
+        );
       });
     });
 

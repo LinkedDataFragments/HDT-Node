@@ -36,6 +36,8 @@ class HdtDocument : public node::ObjectWrap {
   static NAN_METHOD(SearchLiterals);
   // HdtDocument#_searchTerms()
   static NAN_METHOD(SearchTerms);
+  // HdtDocument#_readHeader()
+  static NAN_METHOD(ReadHeader);
   // HdtDocument#_features
   static NAN_PROPERTY_GETTER(Features);
   // HdtDocument#close([callback], [self])
