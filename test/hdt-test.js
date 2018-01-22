@@ -1,7 +1,7 @@
 require('should');
 
 var hdt = require('../lib/hdt');
-
+const fs = require('fs');
 describe('hdt', function () {
   describe('The hdt module', function () {
     it('should be an object', function () {
@@ -38,6 +38,56 @@ describe('hdt', function () {
     });
   });
 
+  describe('modifying an HDT header', function () {
+    var document;
+    before(function () {
+      return new Promise((resolve, reject) => {
+        fs.createReadStream('./test/test.hdt')
+          .on('error', reject)
+          .pipe(fs.createWriteStream('./test/.tmp/test.hdt'))
+          .on('error', reject)
+          .on('finish', resolve);
+      })
+        .then(() => hdt.fromFile('./test/.tmp/test.hdt'))
+        .then(hdtDocument => {
+          document = hdtDocument;
+        });
+    });
+
+    describe('reading, modifying and writing a new header', function () {
+      var oldHeader, newHeader;
+      before(function () {
+        return document.readHeader()
+          .then(result => {
+            oldHeader = result.slice();
+            result.splice(0, 1);
+            return document.writeHeader(result);
+          })
+          .then(result => {
+            newHeader = result;
+          });
+      });
+      after(function () {
+        return document.close();
+      });
+
+      it('should return an array of the new header triples', function () {
+        newHeader.should.be.an.Array();
+        newHeader.should.have.length(21);
+        newHeader[0].should.eql({
+          subject:   '<file://test/test.ttl>',
+          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+          object:    '<http://rdfs.org/ns/void#Dataset>'  });
+        newHeader[1].should.eql({
+          subject:   '<file://test/test.ttl>',
+          predicate: '<http://rdfs.org/ns/void#triples>',
+          object:    '"132"'  });
+        oldHeader.should.be.an.Array();
+        oldHeader.should.have.length(22);
+      });
+    });
+  });
+
   describe('An HDT document for an example HDT file', function () {
     var document;
     before(function () {
@@ -68,11 +118,10 @@ describe('hdt', function () {
     });
 
     describe('reading the Header', function () {
-      var triples, totalCount;
+      var triples;
       before(function () {
         return document.readHeader().then(result => {
-          triples = result.triples;
-          totalCount = result.totalCount;
+          triples = result;
         });
       });
       it('should return an array with matches', function () {
@@ -82,9 +131,6 @@ describe('hdt', function () {
           subject: '<file://test/test.ttl>',
           predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
           object: '<http://purl.org/HDT/hdt#Dataset>' });
-      });
-      it('should have a total count of 22', function () {
-        totalCount.should.equal(22);
       });
     });
 
@@ -896,11 +942,10 @@ describe('hdt', function () {
     });
 
     describe('reading the Header', function () {
-      var triples, totalCount;
+      var triples;
       before(function () {
         return document.readHeader().then(result => {
-          triples = result.triples;
-          totalCount = result.totalCount;
+          triples = result;
         });
       });
       it('should return an array with matches', function () {
@@ -910,9 +955,6 @@ describe('hdt', function () {
           subject: '<file://literals.ttl>',
           predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
           object: '<http://purl.org/HDT/hdt#Dataset>' });
-      });
-      it('should have a total count of 22', function () {
-        totalCount.should.equal(28);
       });
     });
 
