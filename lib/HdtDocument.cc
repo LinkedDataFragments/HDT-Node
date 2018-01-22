@@ -54,7 +54,8 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
-    Nan::SetPrototypeMethod(constructorTemplate, "_readHeader", ReadHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_readHeader",     ReadHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_writeHeader",    WriteHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -445,6 +446,8 @@ public:
   }
 };
 
+// Returns the header of the hdt document as an array of triples.
+// JavaScript signature: HdtDocument#_readHeader(callback)
 NAN_METHOD(HdtDocument::ReadHeader) {
   assert(info.Length() == 2);
   Nan::AsyncQueueWorker(new ReadHeaderWorker(Unwrap<HdtDocument>(info.This()),
@@ -454,7 +457,83 @@ NAN_METHOD(HdtDocument::ReadHeader) {
 
 /******** HdtDocument#_writeHeader ********/
 
-//TODO
+class WriteHeaderWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  Persistent<Object> self;
+  vector<string> subjects, predicates, objects;
+
+public:
+  WriteHeaderWorker(HdtDocument* document, vector<string> subjects,
+                    vector<string> predicates, vector<string> objects,
+                    Nan::Callback* callback, Local<Object> self)
+    : Nan::AsyncWorker(callback), document(document),
+      subjects(subjects), predicates(predicates), objects(objects) {
+        SaveToPersistent("self", self);
+    };
+
+  void Execute() {
+    try {
+      // Get and clear current header.
+      Header *header = document->GetHDT()->getHeader();
+      header->clear();
+
+      // Add new header triples.
+      uint32_t size = subjects.size();
+      for(uint32_t i=0; i<size; i++) {
+        TripleString ti(subjects[i], predicates[i], objects[i]);
+        header->insert(ti);
+      }
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    const unsigned argc = 1;
+    Local<Value> argv[argc] = { Nan::Null() };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+};
+
+// Replaces the current header with a new one.
+// JavaScript signature: HdtDocument#_writeHeader(header, callback)
+NAN_METHOD(HdtDocument::WriteHeader) {
+  assert(info.Length() == 3);
+
+  Local<Object> triple;
+  vector<string> subjects, predicates, objects;
+
+  // Unpack JSON array into subjects, predicates, objects vectors.
+  Local<Array> jsonTriples = Local<Array>::Cast(info[0]);
+  uint32_t length = jsonTriples->Length();
+
+  for (uint32_t i = 0; i < length; i++) {
+    triple = jsonTriples->Get(i)->ToObject();
+    Local<String> SUBJECT = Nan::New("subject").ToLocalChecked();
+    Local<String> PREDICATE = Nan::New("predicate").ToLocalChecked();
+    Local<String> OBJECT = Nan::New("object").ToLocalChecked();
+
+    Local<Value> subject = Nan::Get(triple, SUBJECT).ToLocalChecked();
+    subjects.push_back(std::string(*Nan::Utf8String(subject->ToString())));
+
+    Local<Value> predicate = Nan::Get(triple, PREDICATE).ToLocalChecked();
+    predicates.push_back(std::string(*Nan::Utf8String(predicate->ToString())));
+
+    Local<Value> object = Nan::Get(triple, OBJECT).ToLocalChecked();
+    objects.push_back(std::string(*Nan::Utf8String(object->ToString())));
+  }
+
+  Nan::AsyncQueueWorker(new WriteHeaderWorker(Unwrap<HdtDocument>(info.This()),
+    subjects, predicates, objects, new Nan::Callback(info[1].As<Function>()),
+    info[2]->IsObject() ? info[2].As<Object>() : info.This()));
+}
 
 /******** HdtDocument#features ********/
 
