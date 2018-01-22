@@ -41,6 +41,7 @@ describe('hdt', function () {
   describe('modifying an HDT header', function () {
     var document;
     before(function () {
+      // We're modifying the hdt, so copy it to a different location first
       return new Promise((resolve, reject) => {
         fs.createReadStream('./test/test.hdt')
           .on('error', reject)
@@ -52,6 +53,10 @@ describe('hdt', function () {
         .then(hdtDocument => {
           document = hdtDocument;
         });
+    });
+
+    after(function () {
+      return document.close();
     });
 
     describe('reading, modifying and writing a new header', function () {
@@ -66,9 +71,6 @@ describe('hdt', function () {
           .then(result => {
             newHeader = result;
           });
-      });
-      after(function () {
-        return document.close();
       });
 
       it('should return an array of the new header triples', function () {
