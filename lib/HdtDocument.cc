@@ -8,6 +8,7 @@
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
+#include "../deps/libhdt/src/util/fileUtil.hpp"
 
 using namespace v8;
 using namespace hdt;
@@ -431,7 +432,7 @@ public:
 };
 
 // Returns the header of the hdt document as a string.
-// JavaScript signature: HdtDocument#_readHeader(callback)
+// JavaScript signature: HdtDocument#_readHeader(callback, self)
 NAN_METHOD(HdtDocument::ReadHeader) {
   assert(info.Length() == 2);
   Nan::AsyncQueueWorker(new ReadHeaderWorker(Unwrap<HdtDocument>(info.This()),
@@ -445,14 +446,14 @@ class WriteHeaderWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
   Persistent<Object> self;
-  vector<string> subjects, predicates, objects;
+  string headerString;
+  string fileName;
 
 public:
-  WriteHeaderWorker(HdtDocument* document, vector<string> subjects,
-                    vector<string> predicates, vector<string> objects,
+  WriteHeaderWorker(HdtDocument* document, string headerString, string fileName,
                     Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
-      subjects(subjects), predicates(predicates), objects(objects) {
+      headerString(headerString), fileName(fileName) {
         SaveToPersistent("self", self);
     };
 
@@ -462,12 +463,15 @@ public:
       Header *header = document->GetHDT()->getHeader();
       header->clear();
 
-      // Add new header triples.
-      uint32_t size = subjects.size();
-      for(uint32_t i=0; i<size; i++) {
-        TripleString ti(subjects[i], predicates[i], objects[i]);
-        header->insert(ti);
-      }
+      // Replace header.
+      istringstream in(headerString, ios::binary);
+  		ControlInformation ci;
+  		ci.setFormat(HDTVocabulary::HEADER_NTRIPLES);
+  		ci.setUint("length", fileUtil::getSize(in));
+  		header->load(in, ci);
+
+      // Save
+  		document->GetHDT()->saveToHDT(this->fileName.c_str());
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
   }
@@ -487,36 +491,14 @@ public:
 };
 
 // Replaces the current header with a new one.
-// JavaScript signature: HdtDocument#_writeHeader(header, callback)
+// JavaScript signature: HdtDocument#_writeHeader(header, filename, callback, self)
 NAN_METHOD(HdtDocument::WriteHeader) {
-  assert(info.Length() == 3);
-
-  Local<Object> triple;
-  vector<string> subjects, predicates, objects;
-
-  // Unpack JSON array into subjects, predicates, objects vectors.
-  Local<Array> jsonTriples = Local<Array>::Cast(info[0]);
-  uint32_t length = jsonTriples->Length();
-
-  for (uint32_t i = 0; i < length; i++) {
-    triple = jsonTriples->Get(i)->ToObject();
-    Local<String> SUBJECT = Nan::New("subject").ToLocalChecked();
-    Local<String> PREDICATE = Nan::New("predicate").ToLocalChecked();
-    Local<String> OBJECT = Nan::New("object").ToLocalChecked();
-
-    Local<Value> subject = Nan::Get(triple, SUBJECT).ToLocalChecked();
-    subjects.push_back(std::string(*Nan::Utf8String(subject->ToString())));
-
-    Local<Value> predicate = Nan::Get(triple, PREDICATE).ToLocalChecked();
-    predicates.push_back(std::string(*Nan::Utf8String(predicate->ToString())));
-
-    Local<Value> object = Nan::Get(triple, OBJECT).ToLocalChecked();
-    objects.push_back(std::string(*Nan::Utf8String(object->ToString())));
-  }
+  assert(info.Length() == 4);
 
   Nan::AsyncQueueWorker(new WriteHeaderWorker(Unwrap<HdtDocument>(info.This()),
-    subjects, predicates, objects, new Nan::Callback(info[1].As<Function>()),
-    info[2]->IsObject() ? info[2].As<Object>() : info.This()));
+    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]),
+    new Nan::Callback(info[2].As<Function>()),
+    info[3]->IsObject() ? info[3].As<Object>() : info.This()));
 }
 
 /******** HdtDocument#features ********/
