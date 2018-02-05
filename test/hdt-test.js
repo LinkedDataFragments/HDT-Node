@@ -59,35 +59,35 @@ describe('hdt', function () {
       return document.close();
     });
 
-    describe('reading, modifying and writing a new header', function () {
-      var oldHeader, newHeader;
-      before(function () {
-        return document.readHeader()
-          .then(result => {
-            oldHeader = result.slice();
-            result.splice(0, 1);
-            return document.writeHeader(result);
-          })
-          .then(result => {
-            newHeader = result;
-          });
-      });
-
-      it('should return an array of the new header triples', function () {
-        newHeader.should.be.an.Array();
-        newHeader.should.have.length(21);
-        newHeader[0].should.eql({
-          subject:   '<file://test/test.ttl>',
-          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-          object:    '<http://rdfs.org/ns/void#Dataset>'  });
-        newHeader[1].should.eql({
-          subject:   '<file://test/test.ttl>',
-          predicate: '<http://rdfs.org/ns/void#triples>',
-          object:    '"132"'  });
-        oldHeader.should.be.an.Array();
-        oldHeader.should.have.length(22);
-      });
-    });
+    // describe('reading, modifying and writing a new header', function () {
+    //   var oldHeader, newHeader;
+    //   before(function () {
+    //     return document.readHeader()
+    //       .then(result => {
+    //         oldHeader = result.slice();
+    //         result.splice(0, 1);
+    //         return document.writeHeader(result);
+    //       })
+    //       .then(result => {
+    //         newHeader = result;
+    //       });
+    //   });
+    //
+    //   it('should return an array of the new header triples', function () {
+    //     newHeader.should.be.an.Array();
+    //     newHeader.should.have.length(21);
+    //     newHeader[0].should.eql({
+    //       subject:   '<file://test/test.ttl>',
+    //       predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+    //       object:    '<http://rdfs.org/ns/void#Dataset>'  });
+    //     newHeader[1].should.eql({
+    //       subject:   '<file://test/test.ttl>',
+    //       predicate: '<http://rdfs.org/ns/void#triples>',
+    //       object:    '"132"'  });
+    //     oldHeader.should.be.an.Array();
+    //     oldHeader.should.have.length(22);
+    //   });
+    // });
   });
 
   describe('An HDT document for an example HDT file', function () {
@@ -119,22 +119,22 @@ describe('hdt', function () {
       });
     });
 
-    describe('reading the Header', function () {
-      var triples;
-      before(function () {
-        return document.readHeader().then(result => {
-          triples = result;
-        });
-      });
-      it('should return an array with matches', function () {
-        triples.should.be.an.Array();
-        triples.should.have.length(22);
-        triples[0].should.eql({
-          subject: '<file://test/test.ttl>',
-          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-          object: '<http://purl.org/HDT/hdt#Dataset>' });
-      });
-    });
+    // describe('reading the Header', function () {
+    //   var triples;
+    //   before(function () {
+    //     return document.readHeader().then(result => {
+    //       triples = result;
+    //     });
+    //   });
+    //   it('should return an array with matches', function () {
+    //     triples.should.be.an.Array();
+    //     triples.should.have.length(22);
+    //     triples[0].should.eql({
+    //       subject: '<file://test/test.ttl>',
+    //       predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+    //       object: '<http://purl.org/HDT/hdt#Dataset>' });
+    //   });
+    // });
 
     describe('getting suggestions', function () {
       it('Should have correct results for predicate position', function () {
@@ -943,22 +943,22 @@ describe('hdt', function () {
       });
     });
 
-    describe('reading the Header', function () {
-      var triples;
-      before(function () {
-        return document.readHeader().then(result => {
-          triples = result;
-        });
-      });
-      it('should return an array with matches', function () {
-        triples.should.be.an.Array();
-        triples.should.have.length(28);
-        triples[0].should.eql({
-          subject: '<file://literals.ttl>',
-          predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-          object: '<http://purl.org/HDT/hdt#Dataset>' });
-      });
-    });
+    // describe('reading the Header', function () {
+    //   var triples;
+    //   before(function () {
+    //     return document.readHeader().then(result => {
+    //       triples = result;
+    //     });
+    //   });
+    //   it('should return an array with matches', function () {
+    //     triples.should.be.an.Array();
+    //     triples.should.have.length(28);
+    //     triples[0].should.eql({
+    //       subject: '<file://literals.ttl>',
+    //       predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+    //       object: '<http://purl.org/HDT/hdt#Dataset>' });
+    //   });
+    // });
 
     describe('being searched', function () {
       describe('for an existing subject', function () {
@@ -1141,17 +1141,17 @@ describe('hdt', function () {
       });
     });
 
-    describe('reading the Header', function () {
-      it('should throw an error', function () {
-        return document.readHeader().then(() =>
-            Promise.reject(new Error('Expected an error')),
-          error => {
-            error.should.be.an.instanceOf(Error);
-            error.message.should.equal('The HDT document cannot be read because it is closed');
-          }
-        );
-      });
-    });
+    // describe('reading the Header', function () {
+    //   it('should throw an error', function () {
+    //     return document.readHeader().then(() =>
+    //         Promise.reject(new Error('Expected an error')),
+    //       error => {
+    //         error.should.be.an.instanceOf(Error);
+    //         error.message.should.equal('The HDT document cannot be read because it is closed');
+    //       }
+    //     );
+    //   });
+    // });
 
     describe('being searched for triples', function () {
       it('should throw an error', function () {

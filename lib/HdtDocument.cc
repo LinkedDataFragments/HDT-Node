@@ -377,12 +377,12 @@ class ReadHeaderWorker : public Nan::AsyncWorker {
   // JavaScript function arguments
   Persistent<Object> self;
   // Callback return values
-  vector<string> subjects, predicates, objects;
+  string headerString;
   uint32_t totalCount;
 
 public:
   ReadHeaderWorker(HdtDocument* document, Nan::Callback* callback, Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document), totalCount(0) {
+    : Nan::AsyncWorker(callback), document(document), headerString(""), totalCount(0) {
         SaveToPersistent("self", self);
     };
 
@@ -393,12 +393,15 @@ public:
       Header *header = document->GetHDT()->getHeader();
       IteratorTripleString *it = header->search("","","");
 
-      // Add header triples to the result vectors.
+      // Create header string.
       while(it->hasNext()) {
         TripleString *ts = it->next();
-        subjects.push_back(ts->getSubject());
-        predicates.push_back(ts->getPredicate());
-        objects.push_back(ts->getObject());
+        headerString += ts->getSubject();
+        headerString += " ";
+        headerString += ts->getPredicate();
+        headerString += " ";
+        headerString += ts->getObject();
+        headerString += " .\n";
         totalCount++;
   		}
     }
@@ -410,31 +413,12 @@ public:
   void HandleOKCallback() {
     Nan::HandleScope scope;
 
-    // Convert String vectors to Local<String> vectors.
-    vector<Local<String>> nanSubjects, nanPredicates, nanObjects;
-    for(uint32_t i = 0; i < totalCount; i++) {
-      nanSubjects.push_back(Nan::New(subjects[i]).ToLocalChecked());
-      nanPredicates.push_back(Nan::New(predicates[i]).ToLocalChecked());
-      nanObjects.push_back(Nan::New(objects[i]).ToLocalChecked());
-    }
+    // Convert header string to Local<String>.
+    Local<String> nanHeader = Nan::New(headerString).ToLocalChecked();
 
-    // Convert the triples into a JavaScript object array.
-    uint32_t count = 0;
-    Local<Array> triplesArray = Nan::New<Array>(totalCount);
-    const Local<String> SUBJECT   = Nan::New("subject").ToLocalChecked();
-    const Local<String> PREDICATE = Nan::New("predicate").ToLocalChecked();
-    const Local<String> OBJECT    = Nan::New("object").ToLocalChecked();
-    for (uint32_t i = 0; i < totalCount; i++) {
-      Local<Object> tripleObject = Nan::New<Object>();
-      tripleObject->Set(SUBJECT, nanSubjects[i]);
-      tripleObject->Set(PREDICATE, nanPredicates[i]);
-      tripleObject->Set(OBJECT, nanObjects[i]);
-      triplesArray->Set(count++, tripleObject);
-    }
-
-    // Send the JavaScript array and total count through the callback.
+    // Send the header git string and total count through the callback.
     const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), triplesArray,
+    Local<Value> argv[argc] = { Nan::Null(), nanHeader,
                                 Nan::New<Integer>((uint32_t)totalCount)};
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
@@ -446,7 +430,7 @@ public:
   }
 };
 
-// Returns the header of the hdt document as an array of triples.
+// Returns the header of the hdt document as a string.
 // JavaScript signature: HdtDocument#_readHeader(callback)
 NAN_METHOD(HdtDocument::ReadHeader) {
   assert(info.Length() == 2);
