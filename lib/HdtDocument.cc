@@ -379,11 +379,10 @@ class ReadHeaderWorker : public Nan::AsyncWorker {
   Persistent<Object> self;
   // Callback return values
   string headerString;
-  uint32_t totalCount;
 
 public:
   ReadHeaderWorker(HdtDocument* document, Nan::Callback* callback, Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document), headerString(""), totalCount(0) {
+    : Nan::AsyncWorker(callback), document(document), headerString("") {
         SaveToPersistent("self", self);
     };
 
@@ -403,7 +402,6 @@ public:
         headerString += " ";
         headerString += ts->getObject();
         headerString += " .\n";
-        totalCount++;
   		}
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
@@ -417,10 +415,9 @@ public:
     // Convert header string to Local<String>.
     Local<String> nanHeader = Nan::New(headerString).ToLocalChecked();
 
-    // Send the header git string and total count through the callback.
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = { Nan::Null(), nanHeader,
-                                Nan::New<Integer>((uint32_t)totalCount)};
+    // Send the header string through the callback.
+    const unsigned argc = 2;
+    Local<Value> argv[argc] = { Nan::Null(), nanHeader };
     callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
   }
 
