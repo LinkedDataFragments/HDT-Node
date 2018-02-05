@@ -1,7 +1,7 @@
 require('should');
 
 var hdt = require('../lib/hdt');
-const fs = require('fs');
+var fs = require('fs');
 describe('hdt', function () {
   describe('The hdt module', function () {
     it('should be an object', function () {
