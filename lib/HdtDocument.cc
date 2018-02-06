@@ -403,6 +403,8 @@ public:
         headerString += ts->getObject();
         headerString += " .\n";
   		}
+      // Remove last newline.
+      headerString.pop_back();
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
     if (it)
