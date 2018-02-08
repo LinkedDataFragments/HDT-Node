@@ -65,6 +65,14 @@ describe('hdt', function () {
       it('should not support searchLiterals', function () {
         document.features.searchLiterals.should.be.false();
       });
+
+      it('should support readHeader', function () {
+        document.features.readHeader.should.be.true();
+      });
+
+      it('should support writeHeader', function () {
+        document.features.writeHeader.should.be.true();
+      });
     });
 
     describe('reading the header', function () {
@@ -86,7 +94,7 @@ describe('hdt', function () {
       });
     });
 
-    describe.only('writing a header and saving to a new file', function () {
+    describe('writing a header and saving to a new file', function () {
       var newhdt;
       var header = '_:dictionary <http://purl.org/HDT/hdt#dictionarymapping> "1" .\n' +
                    '_:dictionary <http://purl.org/HDT/hdt#dictionarysizeStrings> "825" .';
@@ -925,6 +933,14 @@ describe('hdt', function () {
 
       it('should support searchLiterals', function () {
         document.features.searchLiterals.should.be.true();
+      });
+
+      it('should support readHeader', function () {
+        document.features.readHeader.should.be.true();
+      });
+
+      it('should support writeHeader', function () {
+        document.features.writeHeader.should.be.true();
       });
     });
 
