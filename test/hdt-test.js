@@ -1,7 +1,7 @@
 require('should');
 
 var hdt = require('../lib/hdt');
-var fs = require('fs');
+
 describe('hdt', function () {
   describe('The hdt module', function () {
     it('should be an object', function () {
@@ -36,58 +36,6 @@ describe('hdt', function () {
         });
       });
     });
-  });
-
-  describe('modifying an HDT header', function () {
-    var document;
-    before(function () {
-      // We're modifying the hdt, so copy it to a different location first
-      return new Promise((resolve, reject) => {
-        fs.createReadStream('./test/test.hdt')
-          .on('error', reject)
-          .pipe(fs.createWriteStream('./test/.tmp/test.hdt'))
-          .on('error', reject)
-          .on('finish', resolve);
-      })
-        .then(() => hdt.fromFile('./test/.tmp/test.hdt'))
-        .then(hdtDocument => {
-          document = hdtDocument;
-        });
-    });
-
-    after(function () {
-      return document.close();
-    });
-
-    // describe('reading, modifying and writing a new header', function () {
-    //   var oldHeader, newHeader;
-    //   before(function () {
-    //     return document.readHeader()
-    //       .then(result => {
-    //         oldHeader = result.slice();
-    //         result.splice(0, 1);
-    //         return document.writeHeader(result);
-    //       })
-    //       .then(result => {
-    //         newHeader = result;
-    //       });
-    //   });
-    //
-    //   it('should return an array of the new header triples', function () {
-    //     newHeader.should.be.an.Array();
-    //     newHeader.should.have.length(21);
-    //     newHeader[0].should.eql({
-    //       subject:   '<file://test/test.ttl>',
-    //       predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-    //       object:    '<http://rdfs.org/ns/void#Dataset>'  });
-    //     newHeader[1].should.eql({
-    //       subject:   '<file://test/test.ttl>',
-    //       predicate: '<http://rdfs.org/ns/void#triples>',
-    //       object:    '"132"'  });
-    //     oldHeader.should.be.an.Array();
-    //     oldHeader.should.have.length(22);
-    //   });
-    // });
   });
 
   describe('An HDT document for an example HDT file', function () {
@@ -135,6 +83,29 @@ describe('hdt', function () {
         header.indexOf('_:publicationInformation ' +
                        '<http://purl.org/dc/terms/issued> ' +
                        '"2014-10-08T16:16:03+0200"').should.be.above(-1);
+      });
+    });
+
+    describe('writing a new header and saving to a new file', function () {
+      var newHeader;
+      var header = '_:dictionary <http://purl.org/HDT/hdt#dictionarymapping> "1" .\n' +
+                   '_:dictionary <http://purl.org/HDT/hdt#dictionarysizeStrings> "825" .';
+      var outputFile = './test/testOutput.hdt';
+      before(function () {
+        return document.writeHeader(header, outputFile)
+          .then(result => {
+            newHeader = result;
+          });
+      });
+      it('should return a string of the new header', function () {
+        newHeader.should.be.a.String();
+        newHeader.split('\n').should.have.length(2);
+        newHeader.indexOf('_:dictionary ' +
+                       '<http://purl.org/HDT/hdt#dictionarymapping> ' +
+                       '"1"').should.be.above(-1);
+        newHeader.indexOf('_:dictionary ' +
+                       '<http://purl.org/HDT/hdt#dictionarysizeStrings> ' +
+                       '"825"').should.be.above(-1);
       });
     });
 

@@ -446,13 +446,13 @@ class WriteHeaderWorker : public Nan::AsyncWorker {
   // JavaScript function arguments
   Persistent<Object> self;
   string headerString;
-  string fileName;
+  string outputFile;
 
 public:
-  WriteHeaderWorker(HdtDocument* document, string headerString, string fileName,
+  WriteHeaderWorker(HdtDocument* document, string headerString, string outputFile,
                     Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
-      headerString(headerString), fileName(fileName) {
+      headerString(headerString), outputFile(outputFile) {
         SaveToPersistent("self", self);
     };
 
@@ -470,7 +470,7 @@ public:
   		header->load(in, ci);
 
       // Save
-  		document->GetHDT()->saveToHDT(this->fileName.c_str());
+  		document->GetHDT()->saveToHDT(outputFile.c_str());
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
   }
@@ -489,8 +489,8 @@ public:
   }
 };
 
-// Replaces the current header with a new one.
-// JavaScript signature: HdtDocument#_writeHeader(header, filename, callback, self)
+// Replaces the current header with a new one and saves result to a new file.
+// JavaScript signature: HdtDocument#_writeHeader(header, outputFile, callback, self)
 NAN_METHOD(HdtDocument::WriteHeader) {
   assert(info.Length() == 4);
 
