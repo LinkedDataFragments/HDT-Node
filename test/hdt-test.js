@@ -86,26 +86,38 @@ describe('hdt', function () {
       });
     });
 
-    describe('writing a new header and saving to a new file', function () {
-      var newHeader;
+    describe.only('writing a header and saving to a new file', function () {
+      var newhdt;
       var header = '_:dictionary <http://purl.org/HDT/hdt#dictionarymapping> "1" .\n' +
                    '_:dictionary <http://purl.org/HDT/hdt#dictionarysizeStrings> "825" .';
       var outputFile = './test/testOutput.hdt';
       before(function () {
-        return document.writeHeader(header, outputFile)
-          .then(result => {
-            newHeader = result;
+        return document.writeHeader(outputFile, header)
+          .then(hdtDocument => {
+            newhdt = hdtDocument;
           });
       });
-      it('should return a string of the new header', function () {
-        newHeader.should.be.a.String();
-        newHeader.split('\n').should.have.length(2);
-        newHeader.indexOf('_:dictionary ' +
-                       '<http://purl.org/HDT/hdt#dictionarymapping> ' +
-                       '"1"').should.be.above(-1);
-        newHeader.indexOf('_:dictionary ' +
-                       '<http://purl.org/HDT/hdt#dictionarysizeStrings> ' +
-                       '"825"').should.be.above(-1);
+      after(function () {
+        return newhdt.close();
+      });
+
+      describe('reading the new header', function () {
+        var header;
+        before(function () {
+          return newhdt.readHeader().then(result => {
+            header = result;
+          });
+        });
+        it('should return a string with matches', function () {
+          header.should.be.a.String();
+          header.split('\n').should.have.length(2);
+          header.indexOf('_:dictionary ' +
+                         '<http://purl.org/HDT/hdt#dictionarymapping> ' +
+                         '"1"').should.be.above(-1);
+          header.indexOf('_:dictionary ' +
+                         '<http://purl.org/HDT/hdt#dictionarysizeStrings> ' +
+                         '"825"').should.be.above(-1);
+        });
       });
     });
 
