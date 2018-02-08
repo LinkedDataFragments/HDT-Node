@@ -449,10 +449,10 @@ class WriteHeaderWorker : public Nan::AsyncWorker {
   string outputFile;
 
 public:
-  WriteHeaderWorker(HdtDocument* document, string headerString, string outputFile,
+  WriteHeaderWorker(HdtDocument* document, string outputFile, string headerString,
                     Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
-      headerString(headerString), outputFile(outputFile) {
+      outputFile(outputFile), headerString(headerString) {
         SaveToPersistent("self", self);
     };
 
@@ -490,7 +490,7 @@ public:
 };
 
 // Replaces the current header with a new one and saves result to a new file.
-// JavaScript signature: HdtDocument#_writeHeader(header, outputFile, callback, self)
+// JavaScript signature: HdtDocument#_writeHeader(outputFile, header, callback, self)
 NAN_METHOD(HdtDocument::WriteHeader) {
   assert(info.Length() == 4);
 
