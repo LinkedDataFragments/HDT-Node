@@ -109,6 +109,73 @@ hdt.fromFile('./test/test.hdt')
   });
 ```
 
+### Reading the header
+HDT supports reading the header as string using `document.readHeader()`.
+The example below reads the header as string, and parses the header using the [N3.js](https://github.com/RubenVerborgh/N3.js/) library.
+
+```JavaScript
+var N3 = require('n3');
+var doc;
+var parser = N3.Parser();
+hdt.fromFile('./test/test.hdt')
+  .then(function(hdtDocument) {
+    doc = hdtDocument;
+    return doc.readHeader();
+  })
+  .then(function(header) {
+    var triples = [];
+    return new Promise(function(resolve, reject) {
+      parser.parse(header, function(error, triple) {
+        if (error) return reject(error);
+        if (triple) return triples.push(triple);
+        resolve(triples);
+      });
+    });
+  })
+  .then(function(triples) {
+    console.log('Read triples from header:\n', triples);
+  })
+  .catch(function(e) {
+    console.error(e);
+  })
+```
+### Writing a new header
+To write header information to an HDT, use `document.writeHeader(toFile, header)`, that returns an HDT document of the output file.
+The example below serializes an [N3](https://github.com/RubenVerborgh/N3.js/) triples object into an N-Triples string, and stores it in the header.
+
+```JavaScript
+var N3 = require('n3');
+var doc;
+var outputFile = './out.hdt';
+
+hdt.fromFile('./test/test.hdt')
+ .then(function(hdtDocument) {
+   doc = hdtDocument;
+   return new Promise(function(resolve, reject) {
+     var writer = N3.Writer({format: 'N-Triples'});
+     writer.addTriple('http://example.org/cartoons#Tom',
+                      'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+                      'http://example.org/cartoons#Cat');
+     writer.end(function(error, triples) {
+       if (error) return reject(error);
+       resolve(triples);
+     });
+   });
+ })
+ .then(function(triples) {
+      return doc.writeHeader(outputFile, triples);
+  })
+  .then(function(createdDocument) {
+    return createdDocument.readHeader();
+  })
+  .then(function(result) {
+    console.log('Wrote ' + result + ' to ' + outputFile);
+  })
+  .catch(function(e) {
+    console.error(e);
+  });
+```
+
 ## Standalone utility
 The standalone utility `hdt` allows you to query HDT files from the command line.
 <br>
