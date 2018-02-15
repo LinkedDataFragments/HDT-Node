@@ -178,6 +178,49 @@ describe('hdt', function () {
       });
     });
 
+    describe('fetching distinct terms', function () {
+      it('Should have correct results for given object', function () {
+        return document.searchTerms({ position : 'predicate', filter : { value : 'http://example.org/o001', position : 'object' } }).then(terms => {
+          terms[0].should.equal('http://example.org/p1');
+          terms[1].should.equal('http://example.org/p2');
+          terms.should.have.lengthOf(2);
+        });
+      });
+      it('Should limit results for given object', function () {
+        return document.searchTerms({ limit : 1, position : 'predicate', filter : { value : 'http://example.org/o001', position : 'object' } }).then(terms => {
+          terms[0].should.equal('http://example.org/p1');
+          terms.should.have.lengthOf(1);
+        });
+      });
+      it('Should throw on conflicting positions', function () {
+        return document.searchTerms({ limit: 'sdf', position: 'object', filter : { value : 'http://example.org/o001', position : 'object' } }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Invalid filter position argument.');
+          }
+        );
+      });
+      it('Should throw on invalid positions', function () {
+        return document.searchTerms({ limit: 0, position: 'predicate', filter : { value : 'http://example.org/o001', position : 'obj' } }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Invalid filter position argument.');
+          }
+        );
+      });
+      it('Should throw on unspecified filter value', function () {
+        return document.searchTerms({ limit: 0, position: 'predicate', filter : { position : 'object' } }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unspecified filter value.');
+          }
+        );
+      });
+    });
+
     describe('being searched', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
