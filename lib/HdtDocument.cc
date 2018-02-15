@@ -57,6 +57,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
+    Nan::SetPrototypeMethod(constructorTemplate, "_fetchDistinctTerms",    FetchDistinctTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "_readHeader",     ReadHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader",   ChangeHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
@@ -311,7 +312,7 @@ NAN_METHOD(HdtDocument::SearchLiterals) {
     new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
-/******** HdtDocument#_SearchTerms ********/
+/******** HdtDocument#_searchTerms ********/
 
 class SearchTermsWorker : public Nan::AsyncWorker {
   HdtDocument* document;
@@ -359,7 +360,7 @@ public:
 };
 
 // Searches terms based on a given string over a specific position.
-// JavaScript signature: HdtDocument#_SearchTerms(string, limit, position, callback)
+// JavaScript signature: HdtDocument#_searchTerms(prefix, limit, position, callback)
 NAN_METHOD(HdtDocument::SearchTerms) {
   assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new SearchTermsWorker(Unwrap<HdtDocument>(info.This()),
@@ -486,6 +487,111 @@ NAN_METHOD(HdtDocument::ChangeHeader) {
   Nan::AsyncQueueWorker(new ChangeHeaderWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]),
     new Nan::Callback(info[2].As<Function>()), info.This()));
+}
+
+/******** HdtDocument#_fetchDistinctTerms ********/
+
+class FetchDistinctTermsWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  string filterVal;
+  hdt::TripleComponentRole filterPos;
+  uint32_t limit;
+  hdt::TripleComponentRole position;
+  Persistent<Object> self;
+  // Callback return values
+  vector<string> distinctTerms;
+public:
+  FetchDistinctTermsWorker(HdtDocument* document, char* filterVal, uint32_t filterPos,
+                    uint32_t limit, uint32_t posId, Nan::Callback* callback,
+                    Local<Object> self)
+    : Nan::AsyncWorker(callback),
+      document(document), filterVal(filterVal), filterPos((TripleComponentRole)  filterPos),
+      limit(limit), position((TripleComponentRole) posId) {
+        SaveToPersistent("self", self);
+      };
+
+  void Execute() {
+
+    const char *subject = "";
+    const char *predicate = "";
+    const char *object = "";
+
+    // Initialize filter search term.
+    switch (filterPos) {
+      case SUBJECT:
+        subject = filterVal.c_str();
+        break;
+      case PREDICATE:
+        predicate = filterVal.c_str();
+        break;
+      case OBJECT:
+        object = filterVal.c_str();
+        break;
+    };
+
+    hdt::IteratorUCharString *it = NULL;
+    try {
+
+      Dictionary* dict = document->GetHDT()->getDictionary();
+      it = dict->getPredicates();
+
+      // Iterate over all predicates.
+      while (it->hasNext()) {
+        unsigned char *s = it->next();
+        predicate = reinterpret_cast<char*>(s);
+
+        // Check occurrence.
+        hdt::IteratorTripleString *rit = document->GetHDT()->search(subject, predicate, object);
+        if(rit->hasNext()) {
+          distinctTerms.push_back(predicate);
+        }
+
+        // Exit if reached limit.
+        if(limit && distinctTerms.size() == limit){
+          delete rit;
+          it->freeStr(s);
+          break;
+        }
+
+        delete rit;
+        it->freeStr(s);
+      }
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+    if (it)
+      delete it;
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    // Convert the distinctTerms into a JavaScript array
+    uint32_t count = 0;
+    Local<Array> distinctTermsArray = Nan::New<Array>(distinctTerms.size());
+    for (vector<string>::const_iterator it = distinctTerms.begin(); it != distinctTerms.end(); it++)
+      Nan::Set(distinctTermsArray, count++, Nan::New(*it).ToLocalChecked());
+
+    // Send the JavaScript array through the callback
+    const unsigned argc = 2;
+    Local<Value> argv[argc] = { Nan::Null(), distinctTermsArray};
+    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+};
+
+// Fetches distinct list of predicates given an object.
+// JavaScript signature: HdtDocument#_fetchDistinctTerms(filterValue, filterPos, limit, position, callback)
+NAN_METHOD(HdtDocument::FetchDistinctTerms ) {
+  assert(info.Length() == 6);
+  Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
+    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
+    info[3]->Uint32Value(), new Nan::Callback(info[4].As<Function>()),
+    info[5]->IsObject() ? info[5].As<Object>() : info.This()));
 }
 
 /******** HdtDocument#features ********/
