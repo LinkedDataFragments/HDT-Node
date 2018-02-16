@@ -197,7 +197,7 @@ describe('hdt', function () {
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Invalid filter position argument.');
+            error.message.should.equal('Unsupported filter position argument.');
           }
         );
       });
@@ -206,7 +206,7 @@ describe('hdt', function () {
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Invalid filter position argument.');
+            error.message.should.equal('Unsupported filter position argument.');
           }
         );
       });
