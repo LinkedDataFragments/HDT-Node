@@ -382,14 +382,15 @@ class ReadHeaderWorker : public Nan::AsyncWorker {
 
 public:
   ReadHeaderWorker(HdtDocument* document, Nan::Callback* callback, Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document), headerString("") {
-        SaveToPersistent("self", self);
+    : Nan::AsyncWorker(callback)
+    , document(document)
+    , headerString("") {
+      SaveToPersistent("self", self);
     };
 
   void Execute() {
     IteratorTripleString *it = NULL;
     try {
-
       Header *header = document->GetHDT()->getHeader();
       IteratorTripleString *it = header->search("","","");
 
@@ -468,7 +469,7 @@ public:
   		header->load(in, ci);
 
       // Save
-  		document->GetHDT()->saveToHDT(outputFile.c_str());
+      document->GetHDT()->saveToHDT(outputFile.c_str());
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
   }
