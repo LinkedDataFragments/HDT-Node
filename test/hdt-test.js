@@ -65,6 +65,68 @@ describe('hdt', function () {
       it('should not support searchLiterals', function () {
         document.features.searchLiterals.should.be.false();
       });
+
+      it('should support readHeader', function () {
+        document.features.readHeader.should.be.true();
+      });
+
+      it('should support changeHeader', function () {
+        document.features.changeHeader.should.be.true();
+      });
+    });
+
+    describe('reading the header', function () {
+      var header;
+      before(function () {
+        return document.readHeader().then(result => {
+          header = result;
+        });
+      });
+      it('should return a string with matches', function () {
+        header.should.be.a.String();
+        header.split('\n').should.have.length(23);
+        header.indexOf('<file://test/test.ttl> ' +
+                       '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ' +
+                       '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
+        header.indexOf('_:publicationInformation ' +
+                       '<http://purl.org/dc/terms/issued> ' +
+                       '"2014-10-08T16:16:03+0200"').should.be.above(-1);
+      });
+    });
+
+    describe('writing a header and saving to a new file', function () {
+      var newhdt;
+      var header = '_:dictionary <http://purl.org/HDT/hdt#dictionarymapping> "1" .\n' +
+                   '_:dictionary <http://purl.org/HDT/hdt#dictionarysizeStrings> "825" .';
+      var outputFile = './test/testOutput.hdt';
+      before(function () {
+        return document.changeHeader(header, outputFile)
+          .then(hdtDocument => {
+            newhdt = hdtDocument;
+          });
+      });
+      after(function () {
+        return newhdt.close();
+      });
+
+      describe('reading the new header', function () {
+        var header;
+        before(function () {
+          return newhdt.readHeader().then(result => {
+            header = result;
+          });
+        });
+        it('should return a string with matches', function () {
+          header.should.be.a.String();
+          header.split('\n').should.have.length(3);
+          header.indexOf('_:dictionary ' +
+                         '<http://purl.org/HDT/hdt#dictionarymapping> ' +
+                         '"1"').should.be.above(-1);
+          header.indexOf('_:dictionary ' +
+                         '<http://purl.org/HDT/hdt#dictionarysizeStrings> ' +
+                         '"825"').should.be.above(-1);
+        });
+      });
     });
 
     describe('getting suggestions', function () {
@@ -115,6 +177,7 @@ describe('hdt', function () {
         );
       });
     });
+
     describe('being searched', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
@@ -871,6 +934,33 @@ describe('hdt', function () {
       it('should support searchLiterals', function () {
         document.features.searchLiterals.should.be.true();
       });
+
+      it('should support readHeader', function () {
+        document.features.readHeader.should.be.true();
+      });
+
+      it('should support changeHeader', function () {
+        document.features.changeHeader.should.be.true();
+      });
+    });
+
+    describe('reading the header', function () {
+      var header;
+      before(function () {
+        return document.readHeader().then(result => {
+          header = result;
+        });
+      });
+      it('should return a string with matches', function () {
+        header.should.be.a.String();
+        header.split('\n').should.have.length(29);
+        header.indexOf('<file://literals.ttl> ' +
+                       '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ' +
+                       '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
+        header.indexOf('_:publicationInformation ' +
+                       '<http://purl.org/dc/terms/issued> ' +
+                       '"2015-02-13T17:21:30+0100"').should.be.above(-1);
+      });
     });
 
     describe('being searched', function () {
@@ -1051,6 +1141,18 @@ describe('hdt', function () {
       return hdt.fromFile('./test/test.hdt').then(hdtDocument => {
         document = hdtDocument;
         return document.close();
+      });
+    });
+
+    describe('reading the header', function () {
+      it('should throw an error', function () {
+        return document.readHeader().then(() =>
+            Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('The HDT document cannot be read because it is closed');
+          }
+        );
       });
     });
 
