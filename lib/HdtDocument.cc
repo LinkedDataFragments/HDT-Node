@@ -535,7 +535,7 @@ public:
       it = dict->getPredicates();
 
       // Iterate over all predicates.
-      while (it->hasNext()) {
+      while (limit && distinctTerms.size() < limit && it->hasNext()) {
         predicate = reinterpret_cast<char*>(it->next());
 
         // Check occurrence.
@@ -543,14 +543,6 @@ public:
         if (rit->hasNext()) {
           distinctTerms.push_back(predicate);
         }
-
-        // Exit if reached limit.
-        if (limit && distinctTerms.size() == limit) {
-          delete rit;
-          delete[] predicate;
-          break;
-        }
-
         delete rit;
         delete[] predicate;
       }
