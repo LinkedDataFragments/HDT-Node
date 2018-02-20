@@ -386,7 +386,7 @@ public:
     , document(document)
     , headerString("") {
       SaveToPersistent("self", self);
-    };
+  };
 
   void Execute() {
     IteratorTripleString *it = NULL;
