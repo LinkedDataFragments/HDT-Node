@@ -56,7 +56,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "_readHeader",     ReadHeader);
-    Nan::SetPrototypeMethod(constructorTemplate, "_writeHeader",    WriteHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader",   ChangeHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -439,9 +439,9 @@ NAN_METHOD(HdtDocument::ReadHeader) {
     info[1]->IsObject() ? info[1].As<Object>() : info.This()));
 }
 
-/******** HdtDocument#_writeHeader ********/
+/******** HdtDocument#_changeHeader ********/
 
-class WriteHeaderWorker : public Nan::AsyncWorker {
+class ChangeHeaderWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
   Persistent<Object> self;
@@ -449,10 +449,10 @@ class WriteHeaderWorker : public Nan::AsyncWorker {
   string outputFile;
 
 public:
-  WriteHeaderWorker(HdtDocument* document, string outputFile, string headerString,
+  ChangeHeaderWorker(HdtDocument* document, string headerString, string outputFile,
                     Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
-      outputFile(outputFile), headerString(headerString) {
+      headerString(headerString), outputFile(outputFile) {
         SaveToPersistent("self", self);
     };
 
@@ -490,11 +490,11 @@ public:
 };
 
 // Replaces the current header with a new one and saves result to a new file.
-// JavaScript signature: HdtDocument#_writeHeader(outputFile, header, callback, self)
-NAN_METHOD(HdtDocument::WriteHeader) {
+// JavaScript signature: HdtDocument#_changeHeader(header, outputFile, callback, self)
+NAN_METHOD(HdtDocument::ChangeHeader) {
   assert(info.Length() == 4);
 
-  Nan::AsyncQueueWorker(new WriteHeaderWorker(Unwrap<HdtDocument>(info.This()),
+  Nan::AsyncQueueWorker(new ChangeHeaderWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]),
     new Nan::Callback(info[2].As<Function>()),
     info[3]->IsObject() ? info[3].As<Object>() : info.This()));

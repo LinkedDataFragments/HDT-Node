@@ -38,8 +38,8 @@ class HdtDocument : public node::ObjectWrap {
   static NAN_METHOD(SearchTerms);
   // HdtDocument#_readHeader(callback, self)
   static NAN_METHOD(ReadHeader);
-  // HdtDocument#_writeHeader(outputFile, headerString, callback, self)
-  static NAN_METHOD(WriteHeader);
+  // HdtDocument#_changeHeader(headerString, outputFile, callback, self)
+  static NAN_METHOD(ChangeHeader);
   // HdtDocument#_features
   static NAN_PROPERTY_GETTER(Features);
   // HdtDocument#close([callback], [self])

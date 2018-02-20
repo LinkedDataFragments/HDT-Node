@@ -70,8 +70,8 @@ describe('hdt', function () {
         document.features.readHeader.should.be.true();
       });
 
-      it('should support writeHeader', function () {
-        document.features.writeHeader.should.be.true();
+      it('should support changeHeader', function () {
+        document.features.changeHeader.should.be.true();
       });
     });
 
@@ -100,7 +100,7 @@ describe('hdt', function () {
                    '_:dictionary <http://purl.org/HDT/hdt#dictionarysizeStrings> "825" .';
       var outputFile = './test/testOutput.hdt';
       before(function () {
-        return document.writeHeader(outputFile, header)
+        return document.changeHeader(header, outputFile)
           .then(hdtDocument => {
             newhdt = hdtDocument;
           });
@@ -939,8 +939,8 @@ describe('hdt', function () {
         document.features.readHeader.should.be.true();
       });
 
-      it('should support writeHeader', function () {
-        document.features.writeHeader.should.be.true();
+      it('should support changeHeader', function () {
+        document.features.changeHeader.should.be.true();
       });
     });
 

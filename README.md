@@ -139,8 +139,8 @@ hdt.fromFile('./test/test.hdt')
     console.error(e);
   })
 ```
-### Writing a new header
-To write header information to an HDT, use `document.writeHeader(toFile, header)`, that returns an HDT document of the output file.
+### Changing the header
+To replace header information of an HDT, use `document.changeHeader(header, toFile)`, that returns an HDT document of the output file.
 The example below serializes an [N3](https://github.com/RubenVerborgh/N3.js/) triples object into an N-Triples string, and stores it in the header.
 
 ```JavaScript
@@ -163,7 +163,7 @@ hdt.fromFile('./test/test.hdt')
    });
  })
  .then(function(triples) {
-      return doc.writeHeader(outputFile, triples);
+      return doc.changeHeader(triples, outputFile);
   })
   .then(function(createdDocument) {
     return createdDocument.readHeader();
