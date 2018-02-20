@@ -84,7 +84,7 @@ describe('hdt', function () {
       });
       it('should return a string with matches', function () {
         header.should.be.a.String();
-        header.split('\n').should.have.length(22);
+        header.split('\n').should.have.length(23);
         header.indexOf('<file://test/test.ttl> ' +
                        '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ' +
                        '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
@@ -118,7 +118,7 @@ describe('hdt', function () {
         });
         it('should return a string with matches', function () {
           header.should.be.a.String();
-          header.split('\n').should.have.length(2);
+          header.split('\n').should.have.length(3);
           header.indexOf('_:dictionary ' +
                          '<http://purl.org/HDT/hdt#dictionarymapping> ' +
                          '"1"').should.be.above(-1);
@@ -953,7 +953,7 @@ describe('hdt', function () {
       });
       it('should return a string with matches', function () {
         header.should.be.a.String();
-        header.split('\n').should.have.length(28);
+        header.split('\n').should.have.length(29);
         header.indexOf('<file://literals.ttl> ' +
                        '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ' +
                        '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
