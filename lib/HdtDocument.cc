@@ -503,16 +503,15 @@ class FetchDistinctTermsWorker : public Nan::AsyncWorker {
   vector<string> distinctTerms;
 public:
   FetchDistinctTermsWorker(HdtDocument* document, char* filterVal, uint32_t filterPos,
-                    uint32_t limit, uint32_t posId, Nan::Callback* callback,
-                    Local<Object> self)
-    : Nan::AsyncWorker(callback),
-      document(document), filterVal(filterVal), filterPos((TripleComponentRole)  filterPos),
-      limit(limit), position((TripleComponentRole) posId) {
+                           uint32_t limit, uint32_t posId, Nan::Callback* callback,
+                           Local<Object> self)
+    : Nan::AsyncWorker(callback), document(document)
+    , filterVal(filterVal), filterPos((TripleComponentRole) filterPos)
+    , limit(limit), position((TripleComponentRole) posId) {
         SaveToPersistent("self", self);
-      };
+  };
 
   void Execute() {
-
     const char *subject = "";
     const char *predicate = "";
     const char *object = "";
@@ -532,7 +531,6 @@ public:
 
     hdt::IteratorUCharString *it = NULL;
     try {
-
       Dictionary* dict = document->GetHDT()->getDictionary();
       it = dict->getPredicates();
 
@@ -543,12 +541,12 @@ public:
 
         // Check occurrence.
         hdt::IteratorTripleString *rit = document->GetHDT()->search(subject, predicate, object);
-        if(rit->hasNext()) {
+        if (rit->hasNext()) {
           distinctTerms.push_back(predicate);
         }
 
         // Exit if reached limit.
-        if(limit && distinctTerms.size() == limit){
+        if (limit && distinctTerms.size() == limit) {
           delete rit;
           it->freeStr(s);
           break;
@@ -586,7 +584,7 @@ public:
 
 // Fetches distinct list of predicates given an object.
 // JavaScript signature: HdtDocument#_fetchDistinctTerms(filterValue, filterPos, limit, position, callback)
-NAN_METHOD(HdtDocument::FetchDistinctTerms ) {
+NAN_METHOD(HdtDocument::FetchDistinctTerms) {
   assert(info.Length() == 6);
   Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
