@@ -536,8 +536,7 @@ public:
 
       // Iterate over all predicates.
       while (it->hasNext()) {
-        unsigned char *s = it->next();
-        predicate = reinterpret_cast<char*>(s);
+        predicate = reinterpret_cast<char*>(it->next());
 
         // Check occurrence.
         hdt::IteratorTripleString *rit = document->GetHDT()->search(subject, predicate, object);
@@ -548,12 +547,12 @@ public:
         // Exit if reached limit.
         if (limit && distinctTerms.size() == limit) {
           delete rit;
-          it->freeStr(s);
+          delete[] predicate;
           break;
         }
 
         delete rit;
-        it->freeStr(s);
+        delete[] predicate;
       }
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
