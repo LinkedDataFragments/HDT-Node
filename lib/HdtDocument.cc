@@ -514,20 +514,7 @@ public:
   void Execute() {
     const char *subject = "";
     const char *predicate = "";
-    const char *object = "";
-
-    // Initialize filter search term.
-    switch (filterPos) {
-      case SUBJECT:
-        subject = filterVal.c_str();
-        break;
-      case PREDICATE:
-        predicate = filterVal.c_str();
-        break;
-      case OBJECT:
-        object = filterVal.c_str();
-        break;
-    };
+    const char *object = filterVal.c_str();
 
     hdt::IteratorUCharString *it = NULL;
     try {
