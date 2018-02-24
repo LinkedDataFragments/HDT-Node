@@ -8,6 +8,7 @@
 #include <HDTVocabulary.hpp>
 #include <LiteralDictionary.hpp>
 #include "HdtDocument.h"
+#include "../deps/libhdt/src/util/fileUtil.hpp"
 
 using namespace v8;
 using namespace hdt;
@@ -54,6 +55,8 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
+    Nan::SetPrototypeMethod(constructorTemplate, "_readHeader",     ReadHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader",   ChangeHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
@@ -326,8 +329,8 @@ public:
                     Local<Object> self)
     : Nan::AsyncWorker(callback),
       document(document), base(base), limit(limit), position((TripleComponentRole) posId) {
-        SaveToPersistent("self", self);
-      };
+    SaveToPersistent("self", self);
+  };
 
   void Execute() {
     try {
@@ -366,6 +369,132 @@ NAN_METHOD(HdtDocument::SearchTerms) {
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
     new Nan::Callback(info[3].As<Function>()),
     info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+}
+
+/******** HdtDocument#_readHeader ********/
+
+class ReadHeaderWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  Persistent<Object> self;
+  // Callback return values
+  string headerString;
+
+public:
+  ReadHeaderWorker(HdtDocument* document, Nan::Callback* callback, Local<Object> self)
+    : Nan::AsyncWorker(callback), document(document), headerString("") {
+    SaveToPersistent("self", self);
+  };
+
+  void Execute() {
+    IteratorTripleString *it = NULL;
+    try {
+      Header *header = document->GetHDT()->getHeader();
+      IteratorTripleString *it = header->search("","","");
+
+      // Create header string.
+      while (it->hasNext()) {
+        TripleString *ts = it->next();
+        headerString += ts->getSubject();
+        headerString += " ";
+        headerString += ts->getPredicate();
+        headerString += " ";
+        headerString += ts->getObject();
+        headerString += " .\n";
+      }
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+    if (it)
+      delete it;
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+
+    // Convert header string to Local<String>.
+    Local<String> nanHeader = Nan::New(headerString).ToLocalChecked();
+
+    // Send the header string through the callback.
+    const unsigned argc = 2;
+    Local<Value> argv[argc] = { Nan::Null(), nanHeader };
+    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+};
+
+// Returns the header of the hdt document as a string.
+// JavaScript signature: HdtDocument#_readHeader(callback, self)
+NAN_METHOD(HdtDocument::ReadHeader) {
+  assert(info.Length() == 2);
+  Nan::AsyncQueueWorker(new ReadHeaderWorker(Unwrap<HdtDocument>(info.This()),
+    new Nan::Callback(info[0].As<Function>()),
+    info[1]->IsObject() ? info[1].As<Object>() : info.This()));
+}
+
+/******** HdtDocument#_changeHeader ********/
+
+class ChangeHeaderWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  Persistent<Object> self;
+  string headerString;
+  string outputFile;
+
+public:
+  ChangeHeaderWorker(HdtDocument* document, string headerString, string outputFile,
+                    Nan::Callback* callback, Local<Object> self)
+    : Nan::AsyncWorker(callback), document(document),
+      headerString(headerString), outputFile(outputFile) {
+      SaveToPersistent("self", self);
+    };
+
+  void Execute() {
+    try {
+      // Get and clear current header.
+      Header *header = document->GetHDT()->getHeader();
+      header->clear();
+
+      // Replace header.
+      istringstream in(headerString, ios::binary);
+      ControlInformation ci;
+      ci.setFormat(HDTVocabulary::HEADER_NTRIPLES);
+      ci.setUint("length", fileUtil::getSize(in));
+      header->load(in, ci);
+
+      // Save
+      document->GetHDT()->saveToHDT(outputFile.c_str());
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    const unsigned argc = 1;
+    Local<Value> argv[argc] = { Nan::Null() };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+  }
+};
+
+// Replaces the current header with a new one and saves result to a new file.
+// JavaScript signature: HdtDocument#_changeHeader(header, outputFile, callback, self)
+NAN_METHOD(HdtDocument::ChangeHeader) {
+  assert(info.Length() == 4);
+
+  Nan::AsyncQueueWorker(new ChangeHeaderWorker(Unwrap<HdtDocument>(info.This()),
+    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]),
+    new Nan::Callback(info[2].As<Function>()),
+    info[3]->IsObject() ? info[3].As<Object>() : info.This()));
 }
 
 /******** HdtDocument#features ********/
