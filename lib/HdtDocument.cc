@@ -13,6 +13,8 @@
 using namespace v8;
 using namespace hdt;
 
+const uint32_t SELF = 0;
+
 
 
 /******** Construction and destruction ********/
@@ -114,7 +116,6 @@ class SearchTriplesWorker : public Nan::AsyncWorker {
   // JavaScript function arguments
   string subject, predicate, object;
   uint32_t offset, limit;
-  Persistent<Object> self;
   // Callback return values
   vector<TripleID> triples;
   map<unsigned int, string> subjects, predicates, objects;
@@ -127,7 +128,7 @@ public:
     : Nan::AsyncWorker(callback),
       document(document), subject(subject), predicate(predicate), object(object),
       offset(offset), limit(limit), totalCount(0) {
-    SaveToPersistent("self", self);
+    SaveToPersistent(SELF, self);
   };
 
   void Execute() {
@@ -212,25 +213,24 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), triplesArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>((bool)hasExactCount) };
-    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Searches for a triple pattern in the document.
 // JavaScript signature: HdtDocument#_searchTriples(subject, predicate, object, offset, limit, callback)
 NAN_METHOD(HdtDocument::SearchTriples) {
-  assert(info.Length() == 7);
+  assert(info.Length() == 6);
   Nan::AsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), *Nan::Utf8String(info[2]),
     info[3]->Uint32Value(), info[4]->Uint32Value(),
-    new Nan::Callback(info[5].As<Function>()),
-    info[6]->IsObject() ? info[6].As<Object>() : info.This()));
+    new Nan::Callback(info[5].As<Function>()), info.This()));
 }
 
 
@@ -242,7 +242,6 @@ class SearchLiteralsWorker : public Nan::AsyncWorker {
   // JavaScript function arguments
   string substring;
   uint32_t offset, limit;
-  Persistent<Object> self;
   // Callback return values
   vector<string> literals;
   uint32_t totalCount;
@@ -252,7 +251,7 @@ public:
                        Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
       substring(substring), offset(offset), limit(limit), totalCount(0) {
-    SaveToPersistent("self", self);
+    SaveToPersistent(SELF, self);
   };
 
   void Execute() {
@@ -293,24 +292,23 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), literalsArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>(true) };
-    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Searches for a triple pattern in the document.
-// JavaScript signature: HdtDocument#_searchLiterals(substring, offset, limit, callback, self)
+// JavaScript signature: HdtDocument#_searchLiterals(substring, offset, limit, callback)
 NAN_METHOD(HdtDocument::SearchLiterals) {
-  assert(info.Length() == 5);
+  assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new SearchLiteralsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
-    new Nan::Callback(info[3].As<Function>()),
-    info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+    new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#_SearchTerms ********/
@@ -321,15 +319,14 @@ class SearchTermsWorker : public Nan::AsyncWorker {
   string base;
   uint32_t limit;
   hdt::TripleComponentRole position;
-  Persistent<Object> self;
   // Callback return values
   vector<string> suggestions;
 public:
-  SearchTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId, Nan::Callback* callback,
-                    Local<Object> self)
+  SearchTermsWorker(HdtDocument* document, char* base, uint32_t limit, uint32_t posId,
+                    Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback),
       document(document), base(base), limit(limit), position((TripleComponentRole) posId) {
-    SaveToPersistent("self", self);
+    SaveToPersistent(SELF, self);
   };
 
   void Execute() {
@@ -351,39 +348,36 @@ public:
     // Send the JavaScript array and estimated total count through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), suggestionsArray};
-    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Searches terms based on a given string over a specific position.
 // JavaScript signature: HdtDocument#_SearchTerms(string, limit, position, callback)
 NAN_METHOD(HdtDocument::SearchTerms) {
-  assert(info.Length() == 5);
+  assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new SearchTermsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
-    new Nan::Callback(info[3].As<Function>()),
-    info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+    new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#_readHeader ********/
 
 class ReadHeaderWorker : public Nan::AsyncWorker {
   HdtDocument* document;
-  // JavaScript function arguments
-  Persistent<Object> self;
   // Callback return values
   string headerString;
 
 public:
   ReadHeaderWorker(HdtDocument* document, Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document), headerString("") {
-    SaveToPersistent("self", self);
+    SaveToPersistent(SELF, self);
   };
 
   void Execute() {
@@ -417,23 +411,22 @@ public:
     // Send the header string through the callback.
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), nanHeader };
-    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Returns the header of the hdt document as a string.
-// JavaScript signature: HdtDocument#_readHeader(callback, self)
+// JavaScript signature: HdtDocument#_readHeader(callback)
 NAN_METHOD(HdtDocument::ReadHeader) {
-  assert(info.Length() == 2);
+  assert(info.Length() == 1);
   Nan::AsyncQueueWorker(new ReadHeaderWorker(Unwrap<HdtDocument>(info.This()),
-    new Nan::Callback(info[0].As<Function>()),
-    info[1]->IsObject() ? info[1].As<Object>() : info.This()));
+    new Nan::Callback(info[0].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#_changeHeader ********/
@@ -441,7 +434,6 @@ NAN_METHOD(HdtDocument::ReadHeader) {
 class ChangeHeaderWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
-  Persistent<Object> self;
   string headerString;
   string outputFile;
 
@@ -450,7 +442,7 @@ public:
                     Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document),
       headerString(headerString), outputFile(outputFile) {
-      SaveToPersistent("self", self);
+      SaveToPersistent(SELF, self);
     };
 
   void Execute() {
@@ -476,25 +468,24 @@ public:
     Nan::HandleScope scope;
     const unsigned argc = 1;
     Local<Value> argv[argc] = { Nan::Null() };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Replaces the current header with a new one and saves result to a new file.
-// JavaScript signature: HdtDocument#_changeHeader(header, outputFile, callback, self)
+// JavaScript signature: HdtDocument#_changeHeader(header, outputFile, callback)
 NAN_METHOD(HdtDocument::ChangeHeader) {
-  assert(info.Length() == 4);
+  assert(info.Length() == 3);
 
   Nan::AsyncQueueWorker(new ChangeHeaderWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]),
-    new Nan::Callback(info[2].As<Function>()),
-    info[3]->IsObject() ? info[3].As<Object>() : info.This()));
+    new Nan::Callback(info[2].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#features ********/
@@ -511,21 +502,19 @@ NAN_PROPERTY_GETTER(HdtDocument::Features) {
 /******** HdtDocument#close ********/
 
 // Closes the document, disabling all further operations.
-// JavaScript signature: HdtDocument#close([callback], [self])
+// JavaScript signature: HdtDocument#close(callback)
 NAN_METHOD(HdtDocument::Close) {
+  assert(info.Length() == 1);
+
   // Destroy the current document
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
   hdtDocument->Destroy();
 
-  // Call the callback if one was passed
-  if (info.Length() >= 1 && info[0]->IsFunction()) {
-    const Local<Function> callback = info[0].As<Function>();
-    const Local<Object> self = info.Length() >= 2 && info[1]->IsObject() ?
-                               info[1].As<Object>() : Nan::GetCurrentContext()->Global();
-    const unsigned argc = 1;
-    Handle<Value> argv[argc] = { Nan::Null() };
-    callback->Call(self, argc, argv);
-  }
+  // Call the callback
+  const Local<Function> callback = info[0].As<Function>();
+  const unsigned argc = 1;
+  Handle<Value> argv[argc] = { Nan::Null() };
+  callback->Call(Nan::GetCurrentContext()->Global(), argc, argv);
 }
 
 
