@@ -497,7 +497,6 @@ class FetchDistinctTermsWorker : public Nan::AsyncWorker {
   string object;
   uint32_t limit;
   hdt::TripleComponentRole position;
-  Persistent<Object> self;
   // Callback return values
   vector<string> distinctTerms;
 public:
@@ -505,7 +504,7 @@ public:
                            uint32_t posId, Nan::Callback* callback, Local<Object> self)
     : Nan::AsyncWorker(callback), document(document), object(object),
       limit(limit), position((TripleComponentRole) posId) {
-    SaveToPersistent("self", self);
+    SaveToPersistent(SELF, self);
   };
 
   void Execute() {
@@ -546,24 +545,23 @@ public:
     // Send the JavaScript array through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), distinctTermsArray};
-    callback->Call(GetFromPersistent("self")->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent("self")->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
   }
 };
 
 // Fetches distinct list of predicates given an object.
 // JavaScript signature: HdtDocument#_fetchDistinctTerms(object, limit, position, callback)
 NAN_METHOD(HdtDocument::FetchDistinctTerms) {
-  assert(info.Length() == 5);
+  assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
-    new Nan::Callback(info[3].As<Function>()),
-    info[4]->IsObject() ? info[4].As<Object>() : info.This()));
+    new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#features ********/
