@@ -187,48 +187,70 @@ describe('hdt', function () {
 
     describe('fetching distinct terms', function () {
       it('Should have correct results for given object', function () {
-        return document.searchTerms({ position : 'predicate', filter : { value : 'http://example.org/o001', position : 'object' } }).then(terms => {
+        return document.searchTerms({ object: 'http://example.org/o001', position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(2);
           terms[0].should.equal('http://example.org/p1');
           terms[1].should.equal('http://example.org/p2');
-          terms.should.have.lengthOf(2);
         });
       });
 
       it('Should limit results for given object', function () {
-        return document.searchTerms({ limit : 1, position : 'predicate', filter : { value : 'http://example.org/o001', position : 'object' } }).then(terms => {
-          terms[0].should.equal('http://example.org/p1');
+        return document.searchTerms({ object: 'http://example.org/o001', limit: 1, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
+          terms[0].should.equal('http://example.org/p1');
         });
       });
 
-      it('Should throw on conflicting positions', function () {
-        return document.searchTerms({ limit: 'sdf', position: 'object', filter : { value : 'http://example.org/o001', position : 'object' } }).then(
+      it('Should throw on unsupported position (object-object)', function () {
+        return document.searchTerms({ object: 'http://example.org/o001', position: 'object' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unsupported filter position argument.');
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
           }
         );
       });
 
-      it('Should throw on invalid positions', function () {
-        return document.searchTerms({ limit: 0, position: 'predicate', filter : { value : 'http://example.org/o001', position : 'obj' } }).then(
+      it('Should throw on unsupported position (object-subject)', function () {
+        return document.searchTerms({ object: 'http://example.org/o001', position: 'subject' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unsupported filter position argument.');
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
           }
         );
       });
 
-      it('Should throw on unspecified filter value', function () {
-        return document.searchTerms({ limit: 0, position: 'predicate', filter : { position : 'object' } }).then(
+      it('Should throw on invalid position', function () {
+        return document.searchTerms({ object: 'http://example.org/o001', position: 'obj' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unspecified filter value.');
+            error.message.should.equal('Invalid position argument. Expected subject, predicate or object.');
           }
         );
+      });
+
+      it('Should throw on unspecified object value', function () {
+        return document.searchTerms({ object: '', limit: 0, position: 'predicate'}).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unspecified object value.');
+          }
+        );
+      });
+
+      it('Should return 0 results on negative limit', function () {
+        return document.searchTerms({ object: 'http://example.org/o001', limit: -1, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        });
+      });
+
+      it('Should return 0 results invalid limit val', function () {
+        return document.searchTerms({ prefix: 'http://example.org/o001', limit: 'sdf', position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        });
       });
     });
 
