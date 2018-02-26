@@ -509,9 +509,8 @@ public:
   };
 
   void Execute() {
-    const char *subject = "";
-    const char *predicate = "";
-    const char *object = filterVal.c_str();
+    const char *predicate;
+    const char *object = this->object.c_str();
 
     hdt::IteratorUCharString *it = NULL;
     try {
@@ -523,7 +522,7 @@ public:
         predicate = reinterpret_cast<char*>(it->next());
 
         // Check occurrence.
-        hdt::IteratorTripleString *rit = document->GetHDT()->search(subject, predicate, object);
+        hdt::IteratorTripleString *rit = document->GetHDT()->search("", predicate, object);
         if (rit->hasNext()) {
           distinctTerms.push_back(predicate);
         }
@@ -558,13 +557,13 @@ public:
 };
 
 // Fetches distinct list of predicates given an object.
-// JavaScript signature: HdtDocument#_fetchDistinctTerms(filterValue, filterPos, limit, position, callback)
+// JavaScript signature: HdtDocument#_fetchDistinctTerms(object, limit, position, callback)
 NAN_METHOD(HdtDocument::FetchDistinctTerms) {
-  assert(info.Length() == 6);
+  assert(info.Length() == 5);
   Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
-    info[3]->Uint32Value(), new Nan::Callback(info[4].As<Function>()),
-    info[5]->IsObject() ? info[5].As<Object>() : info.This()));
+    new Nan::Callback(info[3].As<Function>()),
+    info[4]->IsObject() ? info[4].As<Object>() : info.This()));
 }
 
 /******** HdtDocument#features ********/
