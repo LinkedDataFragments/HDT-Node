@@ -545,7 +545,7 @@ public:
     // Send the JavaScript array through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), distinctTermsArray};
-    callback->Call(GetFromPersistent(SELF->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
   }
 
   void HandleErrorCallback() {
