@@ -232,7 +232,7 @@ describe('hdt', function () {
       });
 
       it('Should throw on unspecified object value', function () {
-        return document.searchTerms({ object: '', limit: 0, position: 'predicate'}).then(
+        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
