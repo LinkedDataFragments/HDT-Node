@@ -494,21 +494,18 @@ NAN_METHOD(HdtDocument::ChangeHeader) {
 class FetchDistinctTermsWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
-  string filterVal;
-  hdt::TripleComponentRole filterPos;
+  string object;
   uint32_t limit;
   hdt::TripleComponentRole position;
   Persistent<Object> self;
   // Callback return values
   vector<string> distinctTerms;
 public:
-  FetchDistinctTermsWorker(HdtDocument* document, char* filterVal, uint32_t filterPos,
-                           uint32_t limit, uint32_t posId, Nan::Callback* callback,
-                           Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document)
-    , filterVal(filterVal), filterPos((TripleComponentRole) filterPos)
-    , limit(limit), position((TripleComponentRole) posId) {
-        SaveToPersistent("self", self);
+  FetchDistinctTermsWorker(HdtDocument* document, char* object, uint32_t limit,
+                           uint32_t posId, Nan::Callback* callback, Local<Object> self)
+    : Nan::AsyncWorker(callback), document(document), object(object),
+      limit(limit), position((TripleComponentRole) posId) {
+    SaveToPersistent("self", self);
   };
 
   void Execute() {
