@@ -38,7 +38,9 @@ declare module "hdt" {
     searchLiterals(substring: string, opts?: SearchLiteralsOpts): Promise<SearchLiteralsResult>;
     searchTerms(opts?: SearchTermsOpts): Promise<string[]>;
     close(): Promise<void>;
+    readHeader(): Promise<string>;
+    changeHeader(triples:string, outputFile:string): Promise<Document>;
   }
-  
+
   export function fromFile(filename: string): Promise<Document>;
 }
