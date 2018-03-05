@@ -91,6 +91,17 @@ hdtDocument.searchTerms({ prefix: 'http://example.org/', limit: 100, position: '
   });
 ```
 
+### Fetching unique predicates for an object
+Find all unique predicates for a given object argument.
+
+```JavaScript
+hdtDocument.searchTerms({ object: 'http://example.org/o1' limit: 10, position: 'predicate' })
+  .then(function(terms) {
+    console.log('Found ' + terms.length + ' unique predicates');
+    return hdtDocument.close();
+  });
+```
+
 ### Searching literals containing a substring
 In an HDT file that was [generated with an FM index](https://github.com/LinkedDataFragments/hdt-cpp/blob/master/hdt-lib/presets/fmindex.hdtcfg),
 you can search for literals that contain a certain substring.
