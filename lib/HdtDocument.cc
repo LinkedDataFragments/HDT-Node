@@ -54,13 +54,13 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     constructorTemplate->SetClassName(Nan::New("HdtDocument").ToLocalChecked());
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
     // Create prototype
-    Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples",  SearchTriples);
+    Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples", SearchTriples);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
-    Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",    SearchTerms);
-    Nan::SetPrototypeMethod(constructorTemplate, "_fetchDistinctTerms",    FetchDistinctTerms);
-    Nan::SetPrototypeMethod(constructorTemplate, "_readHeader",     ReadHeader);
-    Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader",   ChangeHeader);
-    Nan::SetPrototypeMethod(constructorTemplate, "_close",          Close);
+    Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",  SearchTerms);
+    Nan::SetPrototypeMethod(constructorTemplate, "_fetchDistinctTerms", FetchDistinctTerms);
+    Nan::SetPrototypeMethod(constructorTemplate, "_readHeader", ReadHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader", ChangeHeader);
+    Nan::SetPrototypeMethod(constructorTemplate, "_close", Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("_features").ToLocalChecked(), Features);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
@@ -265,7 +265,7 @@ public:
     try {
       // Find matching literal IDs
       LiteralDictionary *dict = (LiteralDictionary*)(document->GetHDT()->getDictionary());
-      uint32_t  literalCount = 0;
+      uint32_t literalCount = 0;
       totalCount = dict->substringToId((unsigned char*)substring.c_str(), substring.length(),
                                        offset, limit, false, &literalIds, &literalCount);
 
@@ -333,7 +333,7 @@ public:
   void Execute() {
     try {
       Dictionary* dict = document->GetHDT()->getDictionary();
-      dict->getSuggestions((char *) base.c_str(), position, suggestions, limit);
+      dict->getSuggestions(base.c_str(), position, suggestions, limit);
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
   }
@@ -496,42 +496,37 @@ class FetchDistinctTermsWorker : public Nan::AsyncWorker {
   // JavaScript function arguments
   string object;
   uint32_t limit;
-  hdt::TripleComponentRole position;
   // Callback return values
   vector<string> distinctTerms;
 public:
   FetchDistinctTermsWorker(HdtDocument* document, char* object, uint32_t limit,
                            uint32_t posId, Nan::Callback* callback, Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document), object(object),
-      limit(limit), position((TripleComponentRole) posId) {
+    : Nan::AsyncWorker(callback), document(document), object(object), limit(limit) {
+    assert(posId == hdt::PREDICATE); // only predicate is supported currently
     SaveToPersistent(SELF, self);
   };
 
   void Execute() {
-    const char *predicate;
-    const char *object = this->object.c_str();
-
-    hdt::IteratorUCharString *it = NULL;
+    hdt::IteratorUCharString *terms = NULL;
     try {
       Dictionary* dict = document->GetHDT()->getDictionary();
-      it = dict->getPredicates();
+      terms = dict->getPredicates();
 
-      // Iterate over all predicates.
-      while (limit && distinctTerms.size() < limit && it->hasNext()) {
-        predicate = reinterpret_cast<char*>(it->next());
+      // Iterate over all predicates
+      while (distinctTerms.size() < limit && terms->hasNext()) {
+        const char* predicate = reinterpret_cast<char*>(terms->next());
 
-        // Check occurrence.
-        hdt::IteratorTripleString *rit = document->GetHDT()->search("", predicate, object);
-        if (rit->hasNext()) {
+        // Check whether a triple with this predicate and object exists
+        hdt::IteratorTripleString *it = document->GetHDT()->search("", predicate, object.c_str());
+        if (it->hasNext())
           distinctTerms.push_back(predicate);
-        }
-        delete rit;
+        delete it;
         delete[] predicate;
       }
     }
     catch (const runtime_error error) { SetErrorMessage(error.what()); }
-    if (it)
-      delete it;
+    if (terms)
+      delete terms;
   }
 
   void HandleOKCallback() {
