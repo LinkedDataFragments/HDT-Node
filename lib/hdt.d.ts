@@ -9,6 +9,7 @@ declare module "hdt" {
     limit?: number;
     position?: "subject" | "predicate" | "object";
     prefix?: string;
+    object?: string, // mutually exclusive with prefix and prioritized
   }
 
   export interface SearchLiteralsOpts {
@@ -38,7 +39,9 @@ declare module "hdt" {
     searchLiterals(substring: string, opts?: SearchLiteralsOpts): Promise<SearchLiteralsResult>;
     searchTerms(opts?: SearchTermsOpts): Promise<string[]>;
     close(): Promise<void>;
+    readHeader(): Promise<string>;
+    changeHeader(triples:string, outputFile:string): Promise<Document>;
   }
-  
+
   export function fromFile(filename: string): Promise<Document>;
 }
