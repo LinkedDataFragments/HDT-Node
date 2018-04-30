@@ -96,7 +96,7 @@ public:
     // Send the new HdtDocument through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), newDocument };
-    callback->Call(argc, argv);
+    callback->Call(argc, argv, async_resource);
   }
 };
 
@@ -214,13 +214,13 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), triplesArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>((bool)hasExactCount) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
@@ -293,13 +293,13 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), literalsArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>(true) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
@@ -349,13 +349,13 @@ public:
     // Send the JavaScript array and estimated total count through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), suggestionsArray};
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
@@ -412,13 +412,13 @@ public:
     // Send the header string through the callback.
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), nanHeader };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
@@ -469,13 +469,13 @@ public:
     Nan::HandleScope scope;
     const unsigned argc = 1;
     Local<Value> argv[argc] = { Nan::Null() };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
@@ -540,13 +540,13 @@ public:
     // Send the JavaScript array through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), distinctTermsArray};
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv);
+    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
   }
 };
 
