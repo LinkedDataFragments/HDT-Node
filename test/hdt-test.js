@@ -330,6 +330,30 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null null null, offset 0 and limit 0', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 0, limit: 0 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an empty array', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
       describe('with pattern null null null, offset 10 and limit 5', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
