@@ -340,7 +340,7 @@ describe('hdt', function () {
           });
         });
 
-        it('should return an empty array', function () {
+        it('should return an array without matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(0);
         });
@@ -1195,6 +1195,25 @@ describe('hdt', function () {
 
         it('should return literals containing "b"', function () {
           literals.should.eql(['"abc"', '"bc"']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for the literal "b" with a limit of 0', function () {
+        var literals, totalCount;
+        before(function () {
+          return document.searchLiterals('b', { limit : 0 }).then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
+        });
+
+        it('should return an array without matches', function () {
+          literals.should.be.an.Array();
+          literals.should.have.length(0);
         });
 
         it('should estimate the total count', function () {
