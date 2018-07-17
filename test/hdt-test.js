@@ -330,6 +330,30 @@ describe('hdt', function () {
         });
       });
 
+      describe('with pattern null null null, offset 0 and limit 0', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 0, limit: 0 }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array without matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
       describe('with pattern null null null, offset 10 and limit 5', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
@@ -647,7 +671,7 @@ describe('hdt', function () {
           hasExactCount.should.equal(true);
         });
       });
-      
+
       describe('with pattern null ex:p1 ""', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
@@ -1171,6 +1195,25 @@ describe('hdt', function () {
 
         it('should return literals containing "b"', function () {
           literals.should.eql(['"abc"', '"bc"']);
+        });
+
+        it('should estimate the total count', function () {
+          totalCount.should.equal(9);
+        });
+      });
+
+      describe('for the literal "b" with a limit of 0', function () {
+        var literals, totalCount;
+        before(function () {
+          return document.searchLiterals('b', { limit : 0 }).then(result => {
+            literals = result.literals;
+            totalCount = result.totalCount;
+          });
+        });
+
+        it('should return an array without matches', function () {
+          literals.should.be.an.Array();
+          literals.should.have.length(0);
         });
 
         it('should estimate the total count', function () {
