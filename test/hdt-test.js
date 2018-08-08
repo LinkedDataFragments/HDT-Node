@@ -647,7 +647,7 @@ describe('hdt', function () {
           hasExactCount.should.equal(true);
         });
       });
-      
+
       describe('with pattern null ex:p1 ""', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
