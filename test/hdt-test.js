@@ -150,15 +150,15 @@ describe('hdt', function () {
         });
       });
 
-      it('should 100 results on empty match', function () {
+      it('should get all results on empty match', function () {
         return document.searchTerms({ prefix: '', position: 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(100);
+          suggestions.should.have.lengthOf(112);
         });
       });
 
-      it('should 100 results when prefix is not defined', function () {
+      it('should get all results when prefix is not defined', function () {
         return document.searchTerms({ position: 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(100);
+          suggestions.should.have.lengthOf(112);
         });
       });
 
@@ -168,9 +168,9 @@ describe('hdt', function () {
         });
       });
 
-      it('should return 0 results invalid limit val', function () {
+      it('should return all results when passed an invalid limit value', function () {
         return document.searchTerms({ prefix: 'http://example.org/', limit: 'sdf', position: 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(0);
+          suggestions.should.have.lengthOf(100);
         });
       });
 
