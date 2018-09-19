@@ -312,7 +312,7 @@ describe('hdt', function () {
           });
         });
 
-        it('should return an array with matches', function () {
+        it('should return an array with all matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
           triples[0].should.eql({
@@ -343,6 +343,110 @@ describe('hdt', function () {
         it('should return an empty array', function () {
           triples.should.be.an.Array();
           triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null null, offset 0 and limit Infinity', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 0, limit: Infinity }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with all matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(132);
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null null, offset 0 and limit -Infinity', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: 0, limit: -Infinity }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an empty array', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null null, offset Infinity and limit Infinity', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: Infinity, limit: Infinity }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an empty array', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(0);
+        });
+
+        it('should estimate the total count as 132', function () {
+          totalCount.should.equal(132);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null null, offset -Infinity and limit Infinity', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null, null, null, { offset: -Infinity, limit: Infinity }).then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with all matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(132);
+          triples[0].should.eql({
+            subject:   'http://example.org/s1',
+            predicate: 'http://example.org/p1',
+            object:    'http://example.org/o001' });
         });
 
         it('should estimate the total count as 132', function () {
