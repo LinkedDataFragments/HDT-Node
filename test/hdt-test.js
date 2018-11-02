@@ -186,6 +186,47 @@ describe('hdt', function () {
     });
 
     describe('fetching distinct terms', function () {
+      it('should have correct results for given subject', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(1);
+          terms[0].should.equal('http://example.org/p1');
+        });
+      });
+
+      it('should limit results for given subject', function () {
+        return document.searchTerms({ subject: 'http://example.org/s2', limit: 1, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(1);
+          terms[0].should.equal('http://example.org/p1');
+        });
+      });
+
+      it('should throw on unsupported position (subject-subject)', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', position: 'subject' }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
+          }
+        );
+      });
+
+      it('should throw on unsupported position (subject-object)', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', position: 'object' }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
+          }
+        );
+      });
+
+      it('should return 0 results on unspecified subject value', function () {
+        return document.searchTerms({ subject: undefined, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        }
+        );
+      });
+
       it('should have correct results for given object', function () {
         return document.searchTerms({ object: 'http://example.org/o001', position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(2);
@@ -231,13 +272,10 @@ describe('hdt', function () {
         );
       });
 
-      it('should throw on unspecified object value', function () {
-        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(
-          () => Promise.reject(new Error('Expected an error')),
-          error => {
-            error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unspecified object value.');
-          }
+      it('should return 0 results on unspecified object value', function () {
+        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        }
         );
       });
 
@@ -247,10 +285,44 @@ describe('hdt', function () {
         });
       });
 
-      it('should return 0 results on invalid limit', function () {
-        return document.searchTerms({ prefix: 'http://example.org/o001', limit: 'sdf', position: 'predicate' }).then(terms => {
-          terms.should.have.lengthOf(0);
+      it('should return all results on invalid limit', function () {
+        return document.searchTerms({ object: 'http://example.org/o001', limit: 'sdf', position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(2);
         });
+      });
+
+      it('should have correct results for given subject and object', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(1);
+          terms[0].should.equal('http://example.org/p1');
+        });
+      });
+
+      it('should limit results for given subject and object', function () {
+        return document.searchTerms({ subject: 'http://example.org/s2', object: 'http://example.org/o001', limit: 1, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(1);
+          terms[0].should.equal('http://example.org/p1');
+        });
+      });
+
+      it('should throw on unsupported position (subject and object - subject)', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'subject' }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
+          }
+        );
+      });
+
+      it('should throw on unsupported position (subject and object - object)', function () {
+        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'object' }).then(
+          () => Promise.reject(new Error('Expected an error')),
+          error => {
+            error.should.be.an.instanceOf(Error);
+            error.message.should.equal('Unsupported position argument. Expected predicate.');
+          }
+        );
       });
     });
 

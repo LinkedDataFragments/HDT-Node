@@ -9,6 +9,7 @@ declare module "hdt" {
     limit?: number;
     position?: "subject" | "predicate" | "object";
     prefix?: string;
+    subject?: string; // mutually exclusive with prefix and prioritized
     object?: string, // mutually exclusive with prefix and prioritized
   }
 
