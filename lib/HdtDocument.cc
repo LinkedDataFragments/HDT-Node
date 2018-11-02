@@ -494,14 +494,15 @@ NAN_METHOD(HdtDocument::ChangeHeader) {
 class FetchDistinctTermsWorker : public Nan::AsyncWorker {
   HdtDocument* document;
   // JavaScript function arguments
+  string subject;
   string object;
   uint32_t limit;
   // Callback return values
   vector<string> distinctTerms;
 public:
-  FetchDistinctTermsWorker(HdtDocument* document, char* object, uint32_t limit,
+  FetchDistinctTermsWorker(HdtDocument* document, char* subject, char* object, uint32_t limit,
                            uint32_t posId, Nan::Callback* callback, Local<Object> self)
-    : Nan::AsyncWorker(callback), document(document), object(object), limit(limit) {
+    : Nan::AsyncWorker(callback), document(document), subject(subject), object(object), limit(limit) {
     assert(posId == hdt::PREDICATE); // only predicate is supported currently
     SaveToPersistent(SELF, self);
   };
@@ -517,7 +518,9 @@ public:
         const char* predicate = reinterpret_cast<char*>(terms->next());
 
         // Check whether a triple with this predicate and object exists
-        hdt::IteratorTripleString *it = document->GetHDT()->search("", predicate, object.c_str());
+        hdt::IteratorTripleString *it;
+        it = (!subject.empty()) ? document->GetHDT()->search(subject.c_str(), predicate, "")
+                                : document->GetHDT()->search("", predicate, object.c_str());
         if (it->hasNext())
           distinctTerms.push_back(predicate);
         delete it;
@@ -553,10 +556,10 @@ public:
 // Fetches distinct list of predicates given an object.
 // JavaScript signature: HdtDocument#_fetchDistinctTerms(object, limit, position, callback)
 NAN_METHOD(HdtDocument::FetchDistinctTerms) {
-  assert(info.Length() == 4);
+  assert(info.Length() == 5);
   Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
-    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
-    new Nan::Callback(info[3].As<Function>()), info.This()));
+    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), info[2]->Uint32Value(), info[3]->Uint32Value(),
+    new Nan::Callback(info[4].As<Function>()), info.This()));
 }
 
 /******** HdtDocument#features ********/

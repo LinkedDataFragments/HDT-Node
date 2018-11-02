@@ -91,11 +91,32 @@ hdtDocument.searchTerms({ prefix: 'http://example.org/', limit: 100, position: '
   });
 ```
 
-### Fetching unique predicates for an object
+### Fetching unique predicates for a subject and/or an object
+
+Find all unique predicates for a given subject argument.
+
+```JavaScript
+hdtDocument.searchTerms({ subject: 'http://example.org/s1' limit: 10, position: 'predicate' })
+  .then(function(terms) {
+    console.log('Found ' + terms.length + ' unique predicates');
+    return hdtDocument.close();
+  });
+```
+
 Find all unique predicates for a given object argument.
 
 ```JavaScript
-hdtDocument.searchTerms({ object: 'http://example.org/o1' limit: 10, position: 'predicate' })
+hdtDocument.searchTerms({ object: 'http://example.org/o1', limit: 10, position: 'predicate' })
+  .then(function(terms) {
+    console.log('Found ' + terms.length + ' unique predicates');
+    return hdtDocument.close();
+  });
+```
+
+Find all unique predicates for given subject and object arguments.
+
+```JavaScript
+hdtDocument.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o1', limit: 10, position: 'predicate' })
   .then(function(terms) {
     console.log('Found ' + terms.length + ' unique predicates');
     return hdtDocument.close();
