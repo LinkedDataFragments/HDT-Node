@@ -517,10 +517,9 @@ public:
       while (distinctTerms.size() < limit && terms->hasNext()) {
         const char* predicate = reinterpret_cast<char*>(terms->next());
 
-        // Check whether a triple with this predicate and object exists
-        hdt::IteratorTripleString *it;
-        it = (!subject.empty()) ? document->GetHDT()->search(subject.c_str(), predicate, "")
-                                : document->GetHDT()->search("", predicate, object.c_str());
+        // Check whether a triple with this predicate and subject or object exists
+        auto it = (!subject.empty()) ? document->GetHDT()->search(subject.c_str(), predicate, "")
+                                     : document->GetHDT()->search("", predicate, object.c_str());
         if (it->hasNext())
           distinctTerms.push_back(predicate);
         delete it;
