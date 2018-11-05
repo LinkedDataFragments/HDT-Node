@@ -518,8 +518,8 @@ public:
         const char* predicate = reinterpret_cast<char*>(terms->next());
 
         // Check whether a triple with this predicate and subject or object exists
-        IteratorUCharString *it = subject.empty() ? document->GetHDT()->search("", predicate, object.c_str())
-                                                  : document->GetHDT()->search(subject.c_str(), predicate, "");
+        hdt::IteratorTripleString *it = subject.empty() ? document->GetHDT()->search("", predicate, object.c_str())
+                                                        : document->GetHDT()->search(subject.c_str(), predicate, "");
         if (it->hasNext())
           distinctTerms.push_back(predicate);
         delete it;
