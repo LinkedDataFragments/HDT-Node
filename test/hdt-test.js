@@ -220,13 +220,10 @@ describe('hdt', function () {
         );
       });
 
-      it('should throw on unspecified subject value', function () {
-        return document.searchTerms({ subject: '', limit: 0, position: 'predicate' }).then(
-          () => Promise.reject(new Error('Expected an error')),
-          error => {
-            error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unspecified subject value.');
-          }
+      it('should return 0 results on unspecified subject value', function () {
+        return document.searchTerms({ subject: undefined, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        }
         );
       });
 
@@ -275,13 +272,10 @@ describe('hdt', function () {
         );
       });
 
-      it('should throw on unspecified object value', function () {
-        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(
-          () => Promise.reject(new Error('Expected an error')),
-          error => {
-            error.should.be.an.instanceOf(Error);
-            error.message.should.equal('Unspecified object value.');
-          }
+      it('should return 0 results on unspecified object value', function () {
+        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(terms => {
+          terms.should.have.lengthOf(0);
+        }
         );
       });
 
