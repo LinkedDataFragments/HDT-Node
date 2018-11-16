@@ -1,6 +1,6 @@
 require('should');
 
-var hdt = require('../lib/hdt');
+const hdt = require('../lib/hdt');
 
 describe('hdt', function () {
   describe('The hdt module', function () {
@@ -1450,7 +1450,7 @@ describe('hdt', function () {
             Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('The HDT document cannot be read because it is closed');
+            error.message.should.equal('The HDT document cannot be accessed because it is closed');
           }
         );
       });
@@ -1462,7 +1462,7 @@ describe('hdt', function () {
             Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('The HDT document cannot be read because it is closed');
+            error.message.should.equal('The HDT document cannot be accessed because it is closed');
           }
         );
       });
@@ -1474,7 +1474,7 @@ describe('hdt', function () {
             Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
-            error.message.should.equal('The HDT document cannot be read because it is closed');
+            error.message.should.equal('The HDT document cannot be accessed because it is closed');
           }
         );
       });
