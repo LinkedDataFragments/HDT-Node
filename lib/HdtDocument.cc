@@ -620,7 +620,7 @@ string& toHdtLiteral(string& literal) {
   if (*(obj = literal.begin()) == '"' && *(objLast = literal.end() - 1) != '"') {
     // If the start of a datatype was found, surround it with angular brackets
     string::const_iterator datatype = objLast;
-    while (obj != --datatype && *datatype != '@' && *datatype != '^');
+    while (obj != --datatype && *datatype != '^');
     if (*datatype == '^') {
       // Allocate space for brackets, and update iterators
       literal.resize(literal.length() + 2);
