@@ -127,7 +127,7 @@ ex:s3 ex:p2 ex:o008.
 ex:s3 ex:p2 ex:o009.
 ex:s3 ex:p2 ex:o010.
 
-# 12 triples with literals
+# 14 triples with literals
 ex:s4 ex:p3 "".
 ex:s4 ex:p3 ""@en.
 ex:s4 ex:p3 ""^^xsd:string.
@@ -140,3 +140,5 @@ ex:s4 ex:p3 "a\"b\'c\\\r\n\\".
 ex:s4 ex:p3 "a\"b\'c\\\r\n\\"@en.
 ex:s4 ex:p3 "a\"b\'c\\\r\n\\"^^xsd:string.
 ex:s4 ex:p3 "a\"b\'c\\\r\n\\"^^ex:literal.
+ex:s4 ex:p3 "\"a\"^^xsd:string"@en.
+ex:s4 ex:p3 "a"^^<abc@def>.

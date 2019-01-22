@@ -7,3 +7,7 @@
 <s> <p> "bc".
 <s> <p> "bc"@en.
 <s> <p> "bc"^^<bcd>.
+<s> <p> "cd"^^<ab@cd>.
+<s> <p> "ab^^cd"@en.
+<s> <p> ""^^<abc@d>.
+<s> <p> ""@en.

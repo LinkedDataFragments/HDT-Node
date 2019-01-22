@@ -90,7 +90,7 @@ describe('hdt', function () {
                        '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
         header.indexOf('_:publicationInformation ' +
                        '<http://purl.org/dc/terms/issued> ' +
-                       '"2014-10-08T16:16:03+0200"').should.be.above(-1);
+                       '"2019-01-18T13:09:56+01:00"').should.be.above(-1);
       });
     });
 
@@ -146,19 +146,25 @@ describe('hdt', function () {
 
       it('should get suggestions for literals', function () {
         return document.searchTerms({ prefix: '"a', position : 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(8);
+          suggestions.should.have.lengthOf(9);
+        });
+      });
+
+      it('should get suggestions for all literals', function () {
+        return document.searchTerms({ prefix: '"', position : 'object' }).then(suggestions => {
+          suggestions.should.have.lengthOf(14);
         });
       });
 
       it('should get all results on empty match', function () {
         return document.searchTerms({ prefix: '', position: 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(112);
+          suggestions.should.have.lengthOf(114);
         });
       });
 
       it('should get all results when prefix is not defined', function () {
         return document.searchTerms({ position: 'object' }).then(suggestions => {
-          suggestions.should.have.lengthOf(112);
+          suggestions.should.have.lengthOf(114);
         });
       });
 
@@ -358,15 +364,15 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
-          triples.should.have.length(132);
+          triples.should.have.length(134);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
             object:    'http://example.org/o001' });
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -393,8 +399,8 @@ describe('hdt', function () {
             object:    'http://example.org/o001' });
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -417,8 +423,8 @@ describe('hdt', function () {
           triples.should.have.length(0);
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -438,15 +444,15 @@ describe('hdt', function () {
 
         it('should return an array with all matches', function () {
           triples.should.be.an.Array();
-          triples.should.have.length(132);
+          triples.should.have.length(134);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
             object:    'http://example.org/o001' });
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -469,8 +475,8 @@ describe('hdt', function () {
           triples.should.have.length(0);
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -493,8 +499,8 @@ describe('hdt', function () {
           triples.should.have.length(0);
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -514,15 +520,15 @@ describe('hdt', function () {
 
         it('should return an array with all matches', function () {
           triples.should.be.an.Array();
-          triples.should.have.length(132);
+          triples.should.have.length(134);
           triples[0].should.eql({
             subject:   'http://example.org/s1',
             predicate: 'http://example.org/p1',
             object:    'http://example.org/o001' });
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -549,8 +555,8 @@ describe('hdt', function () {
             object:    'http://example.org/o011' });
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -573,8 +579,8 @@ describe('hdt', function () {
           triples.should.be.empty();
         });
 
-        it('should estimate the total count as 132', function () {
-          totalCount.should.equal(132);
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -884,7 +890,7 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
-          triples.should.have.length(12);
+          triples.should.have.length(14);
           triples[0].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
@@ -904,39 +910,47 @@ describe('hdt', function () {
           triples[4].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"' });
+            object:    '""a"^^xsd:string"@en' });
           triples[5].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"@en' });
+            object:    '"a"' });
           triples[6].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"^^http://example.org/literal' });
+            object:    '"a"@en' });
           triples[7].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
+            object:    '"a"^^abc@def' });
           triples[8].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"' });
+            object:    '"a"^^http://example.org/literal' });
           triples[9].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"@en' });
+            object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
           triples[10].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
+            object:    '"a"b\'c\\\r\n\\"' });
           triples[11].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"@en' });
+          triples[12].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
+          triples[13].should.eql({
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
             object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
         });
 
-        it('should estimate the total count as 12', function () {
-          totalCount.should.equal(12);
+        it('should estimate the total count as 14', function () {
+          totalCount.should.equal(14);
         });
 
         it('should be an exact count', function () {
@@ -961,6 +975,62 @@ describe('hdt', function () {
             subject:   'http://example.org/s4',
             predicate: 'http://example.org/p3',
             object:    '"a"^^http://example.org/literal' });
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null "\"a\"^^xsd:string"@en', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null,  null, '"\"a\"^^xsd:string"@en').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(1);
+          triples[0].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '""a"^^xsd:string"@en' });
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern null null ""a"^^abc@def', function () {
+        var triples, totalCount, hasExactCount;
+        before(function () {
+          return document.searchTriples(null,  null, '"a"^^abc@def').then(result => {
+            triples = result.triples;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          triples.should.be.an.Array();
+          triples.should.have.length(1);
+          triples[0].should.eql({
+            subject:   'http://example.org/s4',
+            predicate: 'http://example.org/p3',
+            object:    '"a"^^abc@def' });
         });
 
         it('should estimate the total count as 1', function () {
@@ -1082,8 +1152,8 @@ describe('hdt', function () {
           });
         });
 
-        it('should return 132', function () {
-          totalCount.should.equal(132);
+        it('should return 134', function () {
+          totalCount.should.equal(134);
         });
 
         it('should be an exact count', function () {
@@ -1136,8 +1206,8 @@ describe('hdt', function () {
           });
         });
 
-        it('should return 12', function () {
-          totalCount.should.equal(12);
+        it('should return 14', function () {
+          totalCount.should.equal(14);
         });
 
         it('should be an exact count', function () {
@@ -1259,7 +1329,7 @@ describe('hdt', function () {
                        '<http://purl.org/HDT/hdt#Dataset>').should.be.above(-1);
         header.indexOf('_:publicationInformation ' +
                        '<http://purl.org/dc/terms/issued> ' +
-                       '"2015-02-13T17:21:30+0100"').should.be.above(-1);
+                       '"2019-01-18T11:37:23+01:00"').should.be.above(-1);
       });
     });
 
@@ -1275,11 +1345,11 @@ describe('hdt', function () {
 
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
-          triples.should.have.length(9);
+          triples.should.have.length(12);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(12);
         });
       });
 
@@ -1330,11 +1400,11 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "a"', function () {
-          literals.should.eql(['"a"', '"a"@en', '"a"^^bcd', '"abc"', '"abc"@en', '"abc"^^bcd']);
+          literals.should.eql(['"a"', '"a"@en', '"a"^^bcd', '"cd"^^ab@cd', '"ab^^cd"@en', '"abc"', '"abc"@en', '"abc"^^bcd', '""^^abc@d']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(6);
+          totalCount.should.equal(9);
         });
       });
 
@@ -1350,13 +1420,13 @@ describe('hdt', function () {
 
         it('should return literals containing "b" (with duplicates for multiple matches)', function () {
           literals.should.eql([
-            '"abc"', '"bc"', '"abc"@en', '"bc"@en',
-            '"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd',
+            '"cd"^^ab@cd', '"ab^^cd"@en', '"abc"', '"bc"', '"abc"@en', '"bc"@en',
+            '"abc"^^bcd', '"bc"^^bcd', '""^^abc@d', '"a"^^bcd', '"abc"^^bcd', '"bc"^^bcd',
           ]);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(12);
         });
       });
 
@@ -1370,11 +1440,11 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"abc"', '"bc"']);
+          literals.should.eql(['"cd"^^ab@cd', '"ab^^cd"@en']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(12);
         });
       });
 
@@ -1389,11 +1459,11 @@ describe('hdt', function () {
 
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"bc"^^bcd', '"abc"^^bcd', '"bc"^^bcd', '"a"^^bcd', '"abc"^^bcd']);
+          literals.should.eql(['"abc"@en', '"bc"@en', '"abc"^^bcd', '"bc"^^bcd', '""^^abc@d', '"a"^^bcd', '"abc"^^bcd', '"bc"^^bcd']);
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(12);
         });
       });
 
@@ -1411,7 +1481,7 @@ describe('hdt', function () {
         });
 
         it('should estimate the total count', function () {
-          totalCount.should.equal(9);
+          totalCount.should.equal(12);
         });
       });
     });
@@ -1427,11 +1497,11 @@ describe('hdt', function () {
 
 
       it('should return literals containing "b"', function () {
-        literals.should.eql(['"bc"^^bcd', '"abc"^^bcd']);
+        literals.should.eql(['"abc"@en', '"bc"@en']);
       });
 
       it('should estimate the total count', function () {
-        totalCount.should.equal(9);
+        totalCount.should.equal(12);
       });
     });
   });
