@@ -6,6 +6,9 @@ node_js:
   - "6"
   - "8"
   - "10"
+  - "12"
+  - "13"
+  - "lts/*"
   - "node"
 addons:
   apt:

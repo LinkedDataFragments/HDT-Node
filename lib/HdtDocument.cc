@@ -66,7 +66,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
                      Nan::New("closed").ToLocalChecked(), Closed);
     // Set constructor
-    constructor.Reset(constructorTemplate->GetFunction());
+    constructor.Reset(Nan::GetFunction(constructorTemplate).ToLocalChecked());
   }
   return constructor;
 }
@@ -203,10 +203,10 @@ public:
     const Local<String> OBJECT    = Nan::New("object").ToLocalChecked();
     for (vector<TripleID>::const_iterator it = triples.begin(); it != triples.end(); it++) {
       Local<Object> tripleObject = Nan::New<Object>();
-      tripleObject->Set(SUBJECT, subjectStrings[it->getSubject()]);
-      tripleObject->Set(PREDICATE, predicateStrings[it->getPredicate()]);
-      tripleObject->Set(OBJECT, objectStrings[it->getObject()]);
-      triplesArray->Set(count++, tripleObject);
+      Nan::Set(tripleObject, SUBJECT, subjectStrings[it->getSubject()]);
+      Nan::Set(tripleObject, PREDICATE, predicateStrings[it->getPredicate()]);
+      Nan::Set(tripleObject, OBJECT, objectStrings[it->getObject()]);
+      Nan::Set(triplesArray, count++, tripleObject);
     }
 
     // Send the JavaScript array and estimated total count through the callback
@@ -214,13 +214,13 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), triplesArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>((bool)hasExactCount) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -230,7 +230,7 @@ NAN_METHOD(HdtDocument::SearchTriples) {
   assert(info.Length() == 6);
   Nan::AsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), *Nan::Utf8String(info[2]),
-    info[3]->Uint32Value(), info[4]->Uint32Value(),
+    Nan::To<uint32_t>(info[3]).FromJust(), Nan::To<uint32_t>(info[4]).FromJust(),
     new Nan::Callback(info[5].As<Function>()), info.This()));
 }
 
@@ -293,13 +293,13 @@ public:
     Local<Value> argv[argc] = { Nan::Null(), literalsArray,
                                 Nan::New<Integer>((uint32_t)totalCount),
                                 Nan::New<Boolean>(true) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -308,7 +308,8 @@ public:
 NAN_METHOD(HdtDocument::SearchLiterals) {
   assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new SearchLiteralsWorker(Unwrap<HdtDocument>(info.This()),
-    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
+    *Nan::Utf8String(info[0]),
+    Nan::To<uint32_t>(info[1]).FromJust(), Nan::To<uint32_t>(info[2]).FromJust(),
     new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
@@ -349,13 +350,13 @@ public:
     // Send the JavaScript array and estimated total count through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), suggestionsArray};
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -364,7 +365,7 @@ public:
 NAN_METHOD(HdtDocument::SearchTerms) {
   assert(info.Length() == 4);
   Nan::AsyncQueueWorker(new SearchTermsWorker(Unwrap<HdtDocument>(info.This()),
-    *Nan::Utf8String(info[0]), info[1]->Uint32Value(), info[2]->Uint32Value(),
+    *Nan::Utf8String(info[0]), Nan::To<uint32_t>(info[1]).FromJust(), Nan::To<uint32_t>(info[2]).FromJust(),
     new Nan::Callback(info[3].As<Function>()), info.This()));
 }
 
@@ -412,13 +413,13 @@ public:
     // Send the header string through the callback.
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), nanHeader };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -469,13 +470,13 @@ public:
     Nan::HandleScope scope;
     const unsigned argc = 1;
     Local<Value> argv[argc] = { Nan::Null() };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -541,13 +542,13 @@ public:
     // Send the JavaScript array through the callback
     const unsigned argc = 2;
     Local<Value> argv[argc] = { Nan::Null(), distinctTermsArray};
-    callback->Call(GetFromPersistent(SELF)->ToObject(), argc, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
   }
 
   void HandleErrorCallback() {
     Nan::HandleScope scope;
     Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
-    callback->Call(GetFromPersistent(SELF)->ToObject(), 1, argv, async_resource);
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
   }
 };
 
@@ -556,7 +557,7 @@ public:
 NAN_METHOD(HdtDocument::FetchDistinctTerms) {
   assert(info.Length() == 5);
   Nan::AsyncQueueWorker(new FetchDistinctTermsWorker(Unwrap<HdtDocument>(info.This()),
-    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), info[2]->Uint32Value(), info[3]->Uint32Value(),
+    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), Nan::To<uint32_t>(info[2]).FromJust(), Nan::To<uint32_t>(info[3]).FromJust(),
     new Nan::Callback(info[4].As<Function>()), info.This()));
 }
 
@@ -585,8 +586,8 @@ NAN_METHOD(HdtDocument::Close) {
   // Call the callback
   const Local<Function> callback = info[0].As<Function>();
   const unsigned argc = 1;
-  Handle<Value> argv[argc] = { Nan::Null() };
-  callback->Call(Nan::GetCurrentContext()->Global(), argc, argv);
+  Local<Value> argv[argc] = { Nan::Null() };
+  Nan::Call(callback, Nan::GetCurrentContext()->Global(), argc, argv);
 }
 
 
