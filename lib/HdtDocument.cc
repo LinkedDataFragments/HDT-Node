@@ -203,10 +203,10 @@ public:
     const Local<String> OBJECT    = Nan::New("object").ToLocalChecked();
     for (vector<TripleID>::const_iterator it = triples.begin(); it != triples.end(); it++) {
       Local<Object> tripleObject = Nan::New<Object>();
-      tripleObject->Set(SUBJECT, subjectStrings[it->getSubject()]);
-      tripleObject->Set(PREDICATE, predicateStrings[it->getPredicate()]);
-      tripleObject->Set(OBJECT, objectStrings[it->getObject()]);
-      triplesArray->Set(count++, tripleObject);
+      Nan::Set(tripleObject, SUBJECT, subjectStrings[it->getSubject()]);
+      Nan::Set(tripleObject, PREDICATE, predicateStrings[it->getPredicate()]);
+      Nan::Set(tripleObject, OBJECT, objectStrings[it->getObject()]);
+      Nan::Set(triplesArray, count++, tripleObject);
     }
 
     // Send the JavaScript array and estimated total count through the callback
