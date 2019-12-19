@@ -32,7 +32,7 @@ hdt.fromFile(hdtFile)
     results => {
       process.stdout.write('# Total matches: ' + results.totalCount +
                            (results.exactCount ? '' : ' (estimated)') + '\n');
-      writer.addTriples(results.triples);
+      writer.addQuads(results.triples);
       writer.end();
     },
     error => {
