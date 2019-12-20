@@ -1,4 +1,5 @@
 require('should');
+const { literal, variable, namedNode, quad, defaultGraph } = require('n3').DataFactory;
 
 const hdt = require('../lib/hdt');
 
@@ -133,13 +134,13 @@ describe('hdt', function () {
       it('should have correct results for predicate position', function () {
         return document.searchTerms({ prefix: 'http://example.org/', limit:100, position : 'predicate' }).then(suggestions => {
           suggestions.should.have.lengthOf(3);
-          suggestions[0].should.equal('http://example.org/p1');
+          suggestions[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should have correct results for object position', function () {
         return document.searchTerms({ prefix: 'http://example.org/', limit: 2, position : 'object' }).then(suggestions => {
-          suggestions[0].should.equal('http://example.org/o001');
+          suggestions[0].should.eql(namedNode('http://example.org/o001'));
           suggestions.should.have.lengthOf(2);
         });
       });
@@ -193,21 +194,21 @@ describe('hdt', function () {
 
     describe('fetching distinct terms', function () {
       it('should have correct results for given subject', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', position: 'predicate' }).then(terms => {
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
-          terms[0].should.equal('http://example.org/p1');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should limit results for given subject', function () {
-        return document.searchTerms({ subject: 'http://example.org/s2', limit: 1, position: 'predicate' }).then(terms => {
+        return document.searchTerms({ subject: namedNode('http://example.org/s2'), limit: 1, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
-          terms[0].should.equal('http://example.org/p1');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should throw on unsupported position (subject-subject)', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', position: 'subject' }).then(
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), position: 'subject' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -217,7 +218,7 @@ describe('hdt', function () {
       });
 
       it('should throw on unsupported position (subject-object)', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', position: 'object' }).then(
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), position: 'object' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -234,22 +235,22 @@ describe('hdt', function () {
       });
 
       it('should have correct results for given object', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', position: 'predicate' }).then(terms => {
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(2);
-          terms[0].should.equal('http://example.org/p1');
-          terms[1].should.equal('http://example.org/p2');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
+          terms[1].should.eql(namedNode('http://example.org/p2'));
         });
       });
 
       it('should limit results for given object', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', limit: 1, position: 'predicate' }).then(terms => {
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), limit: 1, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
-          terms[0].should.equal('http://example.org/p1');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should throw on unsupported position (object-object)', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', position: 'object' }).then(
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), position: 'object' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -259,7 +260,7 @@ describe('hdt', function () {
       });
 
       it('should throw on unsupported position (object-subject)', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', position: 'subject' }).then(
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), position: 'subject' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -269,7 +270,7 @@ describe('hdt', function () {
       });
 
       it('should throw on invalid position', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', position: 'obj' }).then(
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), position: 'obj' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -279,40 +280,40 @@ describe('hdt', function () {
       });
 
       it('should return 0 results on unspecified object value', function () {
-        return document.searchTerms({ object: '', limit: 0, position: 'predicate' }).then(terms => {
+        return document.searchTerms({ object: namedNode(''), limit: 0, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(0);
         }
         );
       });
 
       it('should return 0 results on negative limit', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', limit: -1, position: 'predicate' }).then(terms => {
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), limit: -1, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(0);
         });
       });
 
       it('should return all results on invalid limit', function () {
-        return document.searchTerms({ object: 'http://example.org/o001', limit: 'sdf', position: 'predicate' }).then(terms => {
+        return document.searchTerms({ object: namedNode('http://example.org/o001'), limit: 'sdf', position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(2);
         });
       });
 
       it('should have correct results for given subject and object', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'predicate' }).then(terms => {
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), object: namedNode('http://example.org/o001'), position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
-          terms[0].should.equal('http://example.org/p1');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should limit results for given subject and object', function () {
-        return document.searchTerms({ subject: 'http://example.org/s2', object: 'http://example.org/o001', limit: 1, position: 'predicate' }).then(terms => {
+        return document.searchTerms({ subject: namedNode('http://example.org/s2'), object: namedNode('http://example.org/o001'), limit: 1, position: 'predicate' }).then(terms => {
           terms.should.have.lengthOf(1);
-          terms[0].should.equal('http://example.org/p1');
+          terms[0].should.eql(namedNode('http://example.org/p1'));
         });
       });
 
       it('should throw on unsupported position (subject and object - subject)', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'subject' }).then(
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), object: namedNode('http://example.org/o001'), position: 'subject' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -322,7 +323,7 @@ describe('hdt', function () {
       });
 
       it('should throw on unsupported position (subject and object - object)', function () {
-        return document.searchTerms({ subject: 'http://example.org/s1', object: 'http://example.org/o001', position: 'object' }).then(
+        return document.searchTerms({ subject: namedNode('http://example.org/s1'), object: namedNode('http://example.org/o001'), position: 'object' }).then(
           () => Promise.reject(new Error('Expected an error')),
           error => {
             error.should.be.an.instanceOf(Error);
@@ -336,7 +337,7 @@ describe('hdt', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
         before(function () {
-          return document.searchTriples('a', null, null).then(result => {
+          return document.searchTriples(namedNode('a'), null, null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
           });
@@ -365,10 +366,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(134);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 134', function () {
@@ -393,10 +396,12 @@ describe('hdt', function () {
         it('should return an array with all matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 134', function () {
@@ -445,10 +450,12 @@ describe('hdt', function () {
         it('should return an array with all matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(134);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 134', function () {
@@ -521,10 +528,12 @@ describe('hdt', function () {
         it('should return an array with all matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(134);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 134', function () {
@@ -549,10 +558,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(5);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o011' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o011'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 134', function () {
@@ -591,7 +602,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s2', null, null).then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), null, null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -601,14 +612,18 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
-          triples[0].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o002' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o002'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 10', function () {
@@ -623,7 +638,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 ex:p1 null', function () {
         var triples;
         before(function () {
-          return document.searchTriples('http://example.org/s2', 'http://example.org/p1', null).then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), namedNode('http://example.org/p1'), null).then(result => {
             triples = result.triples;
           });
         });
@@ -631,21 +646,25 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
-          triples[0].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o002' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o002'),
+            defaultGraph()
+          ));
         });
       });
 
       describe('with pattern ex:s2 ex:p1 ex:o010', function () {
         var triples;
         before(function () {
-          return document.searchTriples('http://example.org/s2', 'http://example.org/p1', 'http://example.org/o010').then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), namedNode('http://example.org/p1'), namedNode('http://example.org/o010')).then(result => {
             triples = result.triples;
           });
         });
@@ -653,10 +672,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o010' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o010'),
+            defaultGraph()
+          ));
         });
       });
 
@@ -666,7 +687,7 @@ describe('hdt', function () {
       describe('with pattern null null ex:o010', function () {
         var triples;
         before(function () {
-          return document.searchTriples(null, null, 'http://example.org/o010').then(result => {
+          return document.searchTriples(null, null, namedNode('http://example.org/o010')).then(result => {
             triples = result.triples;
           });
         });
@@ -674,17 +695,19 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(3);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o010' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o010'),
+            defaultGraph()
+          ));
         });
       });
 
       describe('with pattern ex:s2 null null, offset 2 and limit 1', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s2', null, null, { offset: 2, limit: 1 }).then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), null, null, { offset: 2, limit: 1 }).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -694,10 +717,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o003' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o003'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 10', function () {
@@ -712,7 +737,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null, offset 200 and limit 1', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s2', null, null, { offset: 200, limit: 1 }).then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), null, null, { offset: 200, limit: 1 }).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -736,7 +761,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 ?p ?o', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s2', '?p', '?o').then(result => {
+          return document.searchTriples(namedNode('http://example.org/s2'), '?p', variable('?p')).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -746,14 +771,18 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
-          triples[0].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o001' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s2',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o002' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s2'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o002'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 10', function () {
@@ -768,7 +797,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null, offset 2, limit 2', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null, 'http://example.org/p2', null, { offset: 2, limit: 2 }).then(result => {
+          return document.searchTriples(null, namedNode('http://example.org/p2'), null, { offset: 2, limit: 2 }).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -778,14 +807,18 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(2);
-          triples[0].should.eql({
-            subject:   'http://example.org/s3',
-            predicate: 'http://example.org/p2',
-            object:    'http://example.org/o003' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s3',
-            predicate: 'http://example.org/p2',
-            object:    'http://example.org/o004' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s3'),
+            namedNode('http://example.org/p2'),
+            namedNode('http://example.org/o003'),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s3'),
+            namedNode('http://example.org/p2'),
+            namedNode('http://example.org/o004'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 10', function () {
@@ -800,7 +833,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null, offset 200', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null, 'http://example.org/p2', null, { offset: 200 }).then(result => {
+          return document.searchTriples(null, namedNode('http://example.org/p2'), null, { offset: 200 }).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -825,7 +858,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null, 'http://example.org/p2', null).then(result => {
+          return document.searchTriples(null, namedNode('http://example.org/p2'), null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -835,14 +868,18 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(10);
-          triples[0].should.eql({
-            subject:   'http://example.org/s3',
-            predicate: 'http://example.org/p2',
-            object:    'http://example.org/o001' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s3',
-            predicate: 'http://example.org/p2',
-            object:    'http://example.org/o002' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s3'),
+            namedNode('http://example.org/p2'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s3'),
+            namedNode('http://example.org/p2'),
+            namedNode('http://example.org/o002'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 10', function () {
@@ -857,7 +894,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p1 ""', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null, 'http://example.org/p1',  '""').then(result => {
+          return document.searchTriples(null, namedNode('http://example.org/p1'),  literal('')).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -881,7 +918,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p3 null', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null, 'http://example.org/p3', null).then(result => {
+          return document.searchTriples(null, namedNode('http://example.org/p3'), null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -891,62 +928,91 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(14);
-          triples[0].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""' });
-          triples[1].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""@en' });
-          triples[2].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""^^http://example.org/literal' });
-          triples[3].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""^^http://www.w3.org/2001/XMLSchema#string' });
-          triples[4].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""a"^^xsd:string"@en' });
-          triples[5].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"' });
-          triples[6].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"@en' });
-          triples[7].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"^^abc@def' });
-          triples[8].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"^^http://example.org/literal' });
-          triples[9].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"^^http://www.w3.org/2001/XMLSchema#string' });
-          triples[10].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"' });
-          triples[11].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"@en' });
-          triples[12].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"^^http://example.org/literal' });
-          triples[13].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"b\'c\\\r\n\\"^^http://www.w3.org/2001/XMLSchema#string' });
+
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
+          triples[1].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('', 'en'),
+            defaultGraph()
+          ));
+          triples[2].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('', namedNode('http://example.org/literal')),
+            defaultGraph()
+          ));
+          triples[3].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
+          triples[4].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('"a"^^xsd:string', 'en'),
+            defaultGraph()
+          ));
+          triples[5].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
+          triples[6].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', 'en'),
+            defaultGraph()
+          ));
+          triples[7].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('abc@def')),
+            defaultGraph()
+          ));
+          triples[8].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('http://example.org/literal')),
+            defaultGraph()
+          ));
+          triples[9].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
+          triples[10].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a"b\'c\\\r\n\\', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
+          triples[11].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a"b\'c\\\r\n\\', 'en'),
+            defaultGraph()
+          ));
+          triples[12].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a"b\'c\\\r\n\\', namedNode('http://example.org/literal')),
+            defaultGraph()
+          ));
+          triples[13].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a"b\'c\\\r\n\\', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 14', function () {
@@ -961,7 +1027,7 @@ describe('hdt', function () {
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null,  null, '"a"^^http://example.org/literal').then(result => {
+          return document.searchTriples(null,  null, literal('a', namedNode('http://example.org/literal'))).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -971,10 +1037,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"^^http://example.org/literal' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('http://example.org/literal')),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 1', function () {
@@ -989,7 +1057,7 @@ describe('hdt', function () {
       describe('with pattern null null "\"a\"^^xsd:string"@en', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null,  null, '"\"a\"^^xsd:string"@en').then(result => {
+          return document.searchTriples(null,  null, literal('\"a\"^^xsd:string', 'en')).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -999,10 +1067,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '""a"^^xsd:string"@en' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('"a"^^xsd:string', 'en'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 1', function () {
@@ -1017,7 +1087,7 @@ describe('hdt', function () {
       describe('with pattern null null ""a"^^abc@def', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null,  null, '"a"^^abc@def').then(result => {
+          return document.searchTriples(null,  null, literal('a', namedNode('abc@def'))).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -1027,10 +1097,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s4',
-            predicate: 'http://example.org/p3',
-            object:    '"a"^^abc@def' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s4'),
+            namedNode('http://example.org/p3'),
+            literal('a', namedNode('abc@def')),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 1', function () {
@@ -1045,7 +1117,7 @@ describe('hdt', function () {
       describe('with pattern null null ex:o012', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples(null,  null, 'http://example.org/o012').then(result => {
+          return document.searchTriples(null,  null, namedNode('http://example.org/o012')).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -1055,10 +1127,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s1',
-            predicate: 'http://example.org/p1',
-            object:    'http://example.org/o012' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s1'),
+            namedNode('http://example.org/p1'),
+            namedNode('http://example.org/o012'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 1', function () {
@@ -1073,7 +1147,7 @@ describe('hdt', function () {
       describe('with pattern ex:s3 null ex:o001', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s3',  null, 'http://example.org/o001').then(result => {
+          return document.searchTriples(namedNode('http://example.org/s3'),  null, namedNode('http://example.org/o001')).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -1083,10 +1157,12 @@ describe('hdt', function () {
         it('should return an array with matches', function () {
           triples.should.be.an.Array();
           triples.should.have.length(1);
-          triples[0].should.eql({
-            subject:   'http://example.org/s3',
-            predicate: 'http://example.org/p2',
-            object:    'http://example.org/o001' });
+          triples[0].should.eql(quad(
+            namedNode('http://example.org/s3'),
+            namedNode('http://example.org/p2'),
+            namedNode('http://example.org/o001'),
+            defaultGraph()
+          ));
         });
 
         it('should estimate the total count as 1', function () {
@@ -1101,7 +1177,7 @@ describe('hdt', function () {
       describe('with pattern ex:s3 null ex:o001 and offset 1', function () {
         var triples, totalCount, hasExactCount;
         before(function () {
-          return document.searchTriples('http://example.org/s3',  null, 'http://example.org/o001', { offset : 1 }).then(result => {
+          return document.searchTriples(namedNode('http://example.org/s3'),  null, namedNode('http://example.org/o001'), { offset : 1 }).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
@@ -1128,7 +1204,7 @@ describe('hdt', function () {
       describe('with a non-existing pattern', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples('a', null, null).then(result => {
+          return document.countTriples(namedNode('a'), null, null).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1164,7 +1240,7 @@ describe('hdt', function () {
       describe('with pattern ex:s2 null null', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples('http://example.org/s2', null, null).then(result => {
+          return document.countTriples(namedNode('http://example.org/s2'), null, null).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1182,7 +1258,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p2 null', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples(null, 'http://example.org/p2', null).then(result => {
+          return document.countTriples(null, namedNode('http://example.org/p2'), null).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1200,7 +1276,7 @@ describe('hdt', function () {
       describe('with pattern null ex:p3 null', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples(null, 'http://example.org/p3', null).then(result => {
+          return document.countTriples(null, namedNode('http://example.org/p3'), null).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1218,7 +1294,7 @@ describe('hdt', function () {
       describe('with pattern null null ex:o012', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples(null, null, 'http://example.org/o012').then(result => {
+          return document.countTriples(null, null, namedNode('http://example.org/o012')).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1236,7 +1312,7 @@ describe('hdt', function () {
       describe('with pattern null null "a"^^http://example.org/literal', function () {
         var totalCount, hasExactCount;
         before(function () {
-          return document.countTriples(null, null, '"a"^^http://example.org/literal').then(result => {
+          return document.countTriples(null, null, literal('a', namedNode('http://example.org/literal'))).then(result => {
             totalCount = result.totalCount;
             hasExactCount = result.hasExactCount;
           });
@@ -1337,7 +1413,7 @@ describe('hdt', function () {
       describe('for an existing subject', function () {
         var triples, totalCount;
         before(function () {
-          return document.searchTriples('s', null, null).then(result => {
+          return document.searchTriples(namedNode('s'), null, null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
           });
@@ -1356,7 +1432,7 @@ describe('hdt', function () {
       describe('for a non-existing subject', function () {
         var triples, totalCount;
         before(function () {
-          return document.searchTriples('x', null, null).then(result => {
+          return document.searchTriples(namedNode('x'), null, null).then(result => {
             triples = result.triples;
             totalCount = result.totalCount;
           });
@@ -1400,7 +1476,17 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "a"', function () {
-          literals.should.eql(['"a"', '"a"@en', '"a"^^bcd', '"cd"^^ab@cd', '"ab^^cd"@en', '"abc"', '"abc"@en', '"abc"^^bcd', '""^^abc@d']);
+          literals.should.eql([
+            literal('a', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            literal('a', 'en'),
+            literal('a', namedNode('bcd')),
+            literal('cd', namedNode('ab@cd')),
+            literal('ab^^cd', 'en'),
+            literal('abc', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            literal('abc', 'en'),
+            literal('abc', namedNode('bcd')),
+            literal('', namedNode('abc@d')),
+          ]);
         });
 
         it('should estimate the total count', function () {
@@ -1420,8 +1506,18 @@ describe('hdt', function () {
 
         it('should return literals containing "b" (with duplicates for multiple matches)', function () {
           literals.should.eql([
-            '"cd"^^ab@cd', '"ab^^cd"@en', '"abc"', '"bc"', '"abc"@en', '"bc"@en',
-            '"abc"^^bcd', '"bc"^^bcd', '""^^abc@d', '"a"^^bcd', '"abc"^^bcd', '"bc"^^bcd',
+            literal('cd', namedNode('ab@cd')),
+            literal('ab^^cd', 'en'),
+            literal('abc', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            literal('bc', namedNode('http://www.w3.org/2001/XMLSchema#string')),
+            literal('abc', 'en'),
+            literal('bc', 'en'),
+            literal('abc', namedNode('bcd')),
+            literal('bc', namedNode('bcd')),
+            literal('', namedNode('abc@d')),
+            literal('a', namedNode('bcd')),
+            literal('abc', namedNode('bcd')),
+            literal('bc', namedNode('bcd')),
           ]);
         });
 
@@ -1440,7 +1536,10 @@ describe('hdt', function () {
         });
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"cd"^^ab@cd', '"ab^^cd"@en']);
+          literals.should.eql([
+            literal('cd', namedNode('ab@cd')),
+            literal('ab^^cd', 'en'),
+          ]);
         });
 
         it('should estimate the total count', function () {
@@ -1459,7 +1558,16 @@ describe('hdt', function () {
 
 
         it('should return literals containing "b"', function () {
-          literals.should.eql(['"abc"@en', '"bc"@en', '"abc"^^bcd', '"bc"^^bcd', '""^^abc@d', '"a"^^bcd', '"abc"^^bcd', '"bc"^^bcd']);
+          literals.should.eql([
+            literal('abc', 'en'),
+            literal('bc', 'en'),
+            literal('abc', namedNode('bcd')),
+            literal('bc', namedNode('bcd')),
+            literal('', namedNode('abc@d')),
+            literal('a', namedNode('bcd')),
+            literal('abc', namedNode('bcd')),
+            literal('bc', namedNode('bcd')),
+          ]);
         });
 
         it('should estimate the total count', function () {
@@ -1497,7 +1605,10 @@ describe('hdt', function () {
 
 
       it('should return literals containing "b"', function () {
-        literals.should.eql(['"abc"@en', '"bc"@en']);
+        literals.should.eql([
+          literal('abc', 'en'),
+          literal('bc', 'en'),
+        ]);
       });
 
       it('should estimate the total count', function () {
