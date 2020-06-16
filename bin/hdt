@@ -7,7 +7,7 @@ var args = require('minimist')(process.argv.slice(2), { alias:
     query  = typeof args.query  === 'string' ? args.query  : '',
     format = typeof args.format === 'string' ? args.format : 'text/turtle',
     offset = /^\d+$/.test(args.offset) ? args.offset : 0,
-    limit  = /^\d+$/.test(args.limit)  ? args.limit  : 0;
+    limit  = /^\d+$/.test(args.limit)  ? args.limit  : Infinity;
 
 // Verify the arguments
 if (args._.length !== 1 || args.h || args.help) {
@@ -16,7 +16,8 @@ if (args._.length !== 1 || args.h || args.help) {
 }
 
 var hdt = require('../lib/hdt'),
-    N3 = require('n3');
+    N3 = require('n3'),
+    { stringToTerm } = require('rdf-string');
 
 // Prepare the query and the result writer
 var parts = /^\s*<?([^\s>]*)>?\s*<?([^\s>]*)>?\s*<?([^]*?)>?\s*$/.exec(query),
@@ -27,15 +28,16 @@ var writer = new N3.Writer(process.stdout, { format: format, end: false });
 
 // Load the HDT file
 hdt.fromFile(hdtFile)
-  .then(hdtDocument => hdtDocument.search(subject, predicate, object, { offset: offset, limit: limit }))
-  .then(
-    results => {
-      process.stdout.write('# Total matches: ' + results.totalCount +
+  .then(hdtDocument => hdtDocument.searchTriples(
+    stringToTerm(subject), stringToTerm(predicate), stringToTerm(object),
+    { offset: offset, limit: limit }))
+  .then(results => {
+    process.stdout.write('# Total matches: ' + results.totalCount +
                            (results.exactCount ? '' : ' (estimated)') + '\n');
-      writer.addQuads(results.triples);
-      writer.end();
-    },
-    error => {
-      console.error(error.message), process.exit(1);
-    }
-  );
+    writer.addQuads(results.triples);
+    writer.end();
+  })
+  .catch(error => {
+    console.error(error.message);
+    process.exit(1);
+  });

@@ -28,6 +28,7 @@ install:
 script:
   - npm run lint
   - npm test
+  - bin/hdt test/test.hdt --format turtle --query 'http://example.org/s1 ?p ?o' | grep 'http://example.org/p1'
 cache:
   directories:
     - node_modules
