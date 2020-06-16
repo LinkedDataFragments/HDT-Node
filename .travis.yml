@@ -21,10 +21,13 @@ install:
   - if [ $TRAVIS_OS_NAME == linux ]; then
       export CXX=g++-4.8;
     fi
+  # Test packaged version
   - npm pack .
   - tar -xzf hdt-*.tgz
   - cd package
+  - cp ../package-lock.json .
   - npm install
+  - cp -r ../test .
 script:
   - npm run lint
   - npm test
