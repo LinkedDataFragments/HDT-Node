@@ -1,10 +1,6 @@
-declare module "hdt" {
-  export interface Statement {
-    subject: string;
-    predicate: string;
-    object: string;
-  }
+import * as RDF from "rdf-js";
 
+declare module "hdt" {
   export interface SearchTermsOpts {
     limit?: number;
     position?: "subject" | "predicate" | "object";
@@ -19,7 +15,7 @@ declare module "hdt" {
   }
 
   export interface SearchLiteralsResult {
-    literals: string[];
+    literals: RDF.Literal[];
     totalCount: number;
   }
 
@@ -29,14 +25,14 @@ declare module "hdt" {
   }
 
   export interface SearchResult {
-    triples: Statement[];
+    triples: RDF.Quad[];
     totalCount: number;
     hasExactCount: boolean;
   }
 
   export interface Document {
-    searchTriples(sub?: string, pred?: string, obj?: string, opts?: SearchTriplesOpts): Promise<SearchResult>;
-    countTriples(sub?: string, pred?: string, obj?: string): Promise<SearchResult>;
+    searchTriples(sub?: RDF.Term, pred?: RDF.Term, obj?: RDF.Term, opts?: SearchTriplesOpts): Promise<SearchResult>;
+    countTriples(sub?: RDF.Term, pred?: RDF.Term, obj?: RDF.Term): Promise<SearchResult>;
     searchLiterals(substring: string, opts?: SearchLiteralsOpts): Promise<SearchLiteralsResult>;
     searchTerms(opts?: SearchTermsOpts): Promise<string[]>;
     close(): Promise<void>;
@@ -44,5 +40,5 @@ declare module "hdt" {
     changeHeader(triples:string, outputFile:string): Promise<Document>;
   }
 
-  export function fromFile(filename: string): Promise<Document>;
+  export function fromFile(filename: string, opts?: { dataFactory?: RDF.DataFactory }): Promise<Document>;
 }
