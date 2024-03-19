@@ -46,6 +46,7 @@
         "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
         "OTHER_CFLAGS": [
           "-stdlib=libc++",
+          "-Wno-register"
         ],
       },
     },
