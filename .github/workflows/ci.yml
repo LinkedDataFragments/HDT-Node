@@ -1,0 +1,63 @@
+name: CI
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version:
+          - 18.x
+          - 20.x
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Ensure line endings are consistent
+        run: git config --global core.autocrlf input
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+      - name: Load cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            .rdf-test-suite-cache
+            .rdf-test-suite-ldf-cache
+          key: ${{ runner.os }}-test-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm run test
+      - name: Run bin
+        run: bin/hdt test/test.hdt --format turtle --query 'http://example.org/s1 ?p ?o' | grep 'http://example.org/p1'
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+      - name: Load cache
+        uses: actions/cache@v3
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-lint-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run linter
+        run: npm run lint
