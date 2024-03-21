@@ -1,6 +1,6 @@
 {
   "name": "hdt",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Native bindings to access HDT compressed triple files.",
   "author": "Ruben Verborgh <ruben.verborgh@gmail.com>",
   "keywords": [
