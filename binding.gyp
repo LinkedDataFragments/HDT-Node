@@ -38,6 +38,7 @@
       ],
       "defines": [
         "HAVE_CDS",
+        "_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION",
       ],
       "cflags!":    [ "-fno-rtti", "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-rtti", "-fno-exceptions" ],
