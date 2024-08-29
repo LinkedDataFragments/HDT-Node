@@ -1,6 +1,6 @@
 # HDT for Node.js
 [![npm version](https://badge.fury.io/js/hdt.svg)](https://www.npmjs.com/package/hdt)
-[![Build Status](https://travis-ci.org/RubenVerborgh/HDT-Node.svg?branch=master)](https://travis-ci.org/RubenVerborgh/HDT-Node)
+[![Build status](https://github.com/LinkedDataFragments/HDT-Node/workflows/CI/badge.svg)](https://github.com/LinkedDataFragments/HDT-Node/actions?query=workflow%3ACI)
 [![Dependency Status](https://david-dm.org/RubenVerborgh/HDT-Node.svg)](https://david-dm.org/RubenVerborgh/HDT-Node)
 [![devDependency Status](https://david-dm.org/RubenVerborgh/HDT-Node/dev-status.svg)](https://david-dm.org/RubenVerborgh/HDT-Node#info=devDependencies)
 
