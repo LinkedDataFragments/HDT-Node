@@ -1,0 +1,5 @@
+{
+  "files": "deps/libhdt/src/util/StopWatch.cpp",
+  "from": "uint64_t",
+  "to": "unsigned long long"
+}
