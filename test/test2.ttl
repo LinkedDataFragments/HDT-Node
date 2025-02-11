@@ -1,0 +1,35 @@
+@prefix ex: <http://example.org/>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+
+# Triples with terms that are reused across triple term positions
+# All combinations of ex:t1-t3
+
+ex:t1 ex:t1 ex:t1.
+ex:t1 ex:t1 ex:t2.
+ex:t1 ex:t1 ex:t3.
+ex:t1 ex:t2 ex:t1.
+ex:t1 ex:t2 ex:t2.
+ex:t1 ex:t2 ex:t3.
+ex:t1 ex:t3 ex:t1.
+ex:t1 ex:t3 ex:t2.
+ex:t1 ex:t3 ex:t3.
+
+ex:t2 ex:t1 ex:t1.
+ex:t2 ex:t1 ex:t2.
+ex:t2 ex:t1 ex:t3.
+ex:t2 ex:t2 ex:t1.
+ex:t2 ex:t2 ex:t2.
+ex:t2 ex:t2 ex:t3.
+ex:t2 ex:t3 ex:t1.
+ex:t2 ex:t3 ex:t2.
+ex:t2 ex:t3 ex:t3.
+
+ex:t3 ex:t1 ex:t1.
+ex:t3 ex:t1 ex:t2.
+ex:t3 ex:t1 ex:t3.
+ex:t3 ex:t2 ex:t1.
+ex:t3 ex:t2 ex:t2.
+ex:t3 ex:t2 ex:t3.
+ex:t3 ex:t3 ex:t1.
+ex:t3 ex:t3 ex:t2.
+ex:t3 ex:t3 ex:t3.

@@ -80,6 +80,37 @@ hdt.fromFile('./test/test.hdt')
   });
 ```
 
+### Searching for bindings matching a pattern
+Search for [bindings](https://rdf.js.org/query-spec/#bindings-interface) with `searchBindings`,
+which takes [bindingsFactory](https://rdf.js.org/query-spec/#bindingsfactory-interface), subject, predicate, object, and options arguments.
+Subject, predicate, and object can be IRIs, literals, or variables,
+[represented as RDF/JS terms](https://rdf.js.org/data-model-spec/#term-interface).
+If any of these parameters is a variable, it is considered a wildcard.
+Optionally, an offset and limit can be passed in an options object,
+selecting only the specified subset.
+
+The promise returns an object with an array of bindings, the total number of expected bindings for the pattern,
+and whether the total count is an estimate or exact.
+
+If variables are reused across terms, this library will make sure to only return bindings when matches for those variables are equal.
+
+```JavaScript
+const DF = new (require('rdf-data-factory').DataFactory)();
+const BF = new (require('@comunica/utils-bindings-factory').BindingsFactory)(DF);
+
+var doc;
+hdt.fromFile('./test/test.hdt')
+  .then(function(hdtDocument) {
+    doc = hdtDocument;
+    return doc.searchBindings(DF.namedNode('http://example.org/s1'), DF.variable('p'), DF.variable('o'), { offset: 0, limit: 10 })
+  })
+  .then(function(result) {
+    console.log('Approximately ' + result.totalCount + ' bindings match the pattern.');
+    result.bindings.forEach(function (binding) { console.log(binding.toString()); });
+    return doc.close();
+  });
+```
+
 ### Search terms starting with a prefix
 Find terms (literals and IRIs) that start with a given prefix.
 

@@ -55,6 +55,7 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     constructorTemplate->InstanceTemplate()->SetInternalFieldCount(1);
     // Create prototype
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTriples", SearchTriples);
+    Nan::SetPrototypeMethod(constructorTemplate, "_searchBindings", SearchBindings);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchLiterals", SearchLiterals);
     Nan::SetPrototypeMethod(constructorTemplate, "_searchTerms",  SearchTerms);
     Nan::SetPrototypeMethod(constructorTemplate, "_fetchDistinctTerms", FetchDistinctTerms);
@@ -229,6 +230,141 @@ public:
 NAN_METHOD(HdtDocument::SearchTriples) {
   assert(info.Length() == 6);
   Nan::AsyncQueueWorker(new SearchTriplesWorker(Unwrap<HdtDocument>(info.This()),
+    *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), *Nan::Utf8String(info[2]),
+    Nan::To<uint32_t>(info[3]).FromJust(), Nan::To<uint32_t>(info[4]).FromJust(),
+    new Nan::Callback(info[5].As<Function>()), info.This()));
+}
+
+/******** HdtDocument#_searchBindings ********/
+
+class SearchBindingsWorker : public Nan::AsyncWorker {
+  HdtDocument* document;
+  // JavaScript function arguments
+  string subject, predicate, object;
+  uint32_t offset, limit;
+  // Callback return values
+  vector<TripleID> triples;
+  map<unsigned int, string> subjects, predicates, objects;
+  uint32_t totalCount;
+  bool hasExactCount;
+  bool varS, varP, varO;
+
+public:
+  SearchBindingsWorker(HdtDocument* document, char* subject, char* predicate, char* object,
+                       uint32_t offset, uint32_t limit, Nan::Callback* callback, Local<Object> self)
+    : Nan::AsyncWorker(callback),
+      document(document), subject(subject), predicate(predicate), object(object),
+      offset(offset), limit(limit), totalCount(0) {
+    SaveToPersistent(SELF, self);
+  };
+
+  void Execute() {
+    IteratorTripleID* it = NULL;
+    try {
+      // Determine which terms are variables
+      varS = isVariable(subject);
+      varP = isVariable(predicate);
+      varO = isVariable(object);
+
+      // Prepare the triple pattern
+      Dictionary* dict = document->GetHDT()->getDictionary();
+      TripleString triple(varS ? "" : subject, varP ? "" : predicate, varO ? "" : toHdtLiteral(object));
+      TripleID tripleId;
+      dict->tripleStringtoTripleID(triple, tripleId);
+      // If any of the components does not exist, there are no matches
+      if ((!varS && subject[0]   && !tripleId.getSubject())   ||
+          (!varP && predicate[0] && !tripleId.getPredicate()) ||
+          (!varO && object[0]    && !tripleId.getObject())) {
+        hasExactCount = true;
+        return;
+      }
+
+      // Estimate the total number of triples
+      it = document->GetHDT()->getTriples()->search(tripleId);
+      totalCount = it->estimatedNumResults();
+      hasExactCount = it->numResultEstimation() == EXACT;
+
+      // Go to the right offset
+      if (it->canGoTo())
+        try { it->skip(offset), offset = 0; }
+        catch (const runtime_error error) { /* invalid offset */ }
+      else
+        while (offset && it->hasNext()) it->next(), offset--;
+
+      // Add matching triples to the result vector
+      if (!offset) {
+        while (it->hasNext() && triples.size() < limit) {
+          TripleID& triple = *it->next();
+          triples.push_back(triple);
+          if (varS && !subjects.count(triple.getSubject())) {
+            subjects[triple.getSubject()] = dict->idToString(triple.getSubject(), SUBJECT);
+          }
+          if (varP && !predicates.count(triple.getPredicate())) {
+            predicates[triple.getPredicate()] = dict->idToString(triple.getPredicate(), PREDICATE);
+          }
+          if (varO && !objects.count(triple.getObject())) {
+            string object(dict->idToString(triple.getObject(), OBJECT));
+            objects[triple.getObject()] = fromHdtLiteral(object);
+          }
+        }
+      }
+    }
+    catch (const runtime_error error) { SetErrorMessage(error.what()); }
+    if (it)
+      delete it;
+  }
+
+  void HandleOKCallback() {
+    Nan::HandleScope scope;
+    // Convert the triple components into strings
+    map<unsigned int, string>::const_iterator it;
+    map<unsigned int, Local<String> > subjectStrings, predicateStrings, objectStrings;
+    for (it = subjects.begin(); it != subjects.end(); it++)
+      subjectStrings[it->first] = Nan::New(it->second.c_str()).ToLocalChecked();
+    for (it = predicates.begin(); it != predicates.end(); it++)
+      predicateStrings[it->first] = Nan::New(it->second.c_str()).ToLocalChecked();
+    for (it = objects.begin(); it != objects.end(); it++)
+      objectStrings[it->first] = Nan::New(it->second.c_str()).ToLocalChecked();
+
+    // Convert the triples into a double JavaScript array
+    uint32_t count = 0;
+    Local<Array> bindingsArray = Nan::New<Array>(triples.size());
+    uint32_t variables = (varS ? 1 : 0) + (varP ? 1 : 0) + (varO ? 1 : 0);
+    for (vector<TripleID>::const_iterator it = triples.begin(); it != triples.end(); it++) {
+      uint32_t countInner = 0;
+      Local<Object> bindingsArrayInner = Nan::New<Array>(variables);
+      if (varS) {
+        Nan::Set(bindingsArrayInner, countInner++, subjectStrings[it->getSubject()]);
+      }
+      if (varP) {
+        Nan::Set(bindingsArrayInner, countInner++, predicateStrings[it->getPredicate()]);
+      }
+      if (varO) {
+        Nan::Set(bindingsArrayInner, countInner++, objectStrings[it->getObject()]);
+      }
+      Nan::Set(bindingsArray, count++, bindingsArrayInner);
+    }
+
+    // Send the JavaScript array through the callback
+    const unsigned argc = 4;
+    Local<Value> argv[argc] = { Nan::Null(), bindingsArray,
+                                Nan::New<Integer>((uint32_t)totalCount),
+                                Nan::New<Boolean>((bool)hasExactCount) };
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), argc, argv, async_resource);
+  }
+
+  void HandleErrorCallback() {
+    Nan::HandleScope scope;
+    Local<Value> argv[] = { Exception::Error(Nan::New(ErrorMessage()).ToLocalChecked()) };
+    callback->Call(Nan::To<v8::Object>(GetFromPersistent(SELF)).ToLocalChecked(), 1, argv, async_resource);
+  }
+};
+
+// Searches for a triple pattern in the document and return bindings.
+// JavaScript signature: HdtDocument#_searchBindings(subject, predicate, object, offset, limit, callback)
+NAN_METHOD(HdtDocument::SearchBindings) {
+  assert(info.Length() == 6);
+  Nan::AsyncQueueWorker(new SearchBindingsWorker(Unwrap<HdtDocument>(info.This()),
     *Nan::Utf8String(info[0]), *Nan::Utf8String(info[1]), *Nan::Utf8String(info[2]),
     Nan::To<uint32_t>(info[3]).FromJust(), Nan::To<uint32_t>(info[4]).FromJust(),
     new Nan::Callback(info[5].As<Function>()), info.This()));
@@ -612,6 +748,10 @@ NAN_PROPERTY_GETTER(HdtDocument::Closed) {
 //   "literal"^^<http://example.org/datatype>
 // The functions below convert when needed.
 
+// Check if a term is a variable
+bool isVariable(string& term) {
+  return term[0] == '?';
+}
 
 // Converts a JavaScript literal to an HDT literal
 string& toHdtLiteral(string& literal) {

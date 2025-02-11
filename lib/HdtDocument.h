@@ -32,6 +32,8 @@ class HdtDocument : public node::ObjectWrap {
 
   // HdtDocument#_searchTriples(subject, predicate, object, offset, limit, callback, self)
   static NAN_METHOD(SearchTriples);
+  // HdtDocument#_searchBindings(subject, predicate, object, offset, limit, callback, self)
+  static NAN_METHOD(SearchBindings);
   // HdtDocument#_searchLiterals(substring, offset, limit, callback, self)
   static NAN_METHOD(SearchLiterals);
   // HdtDocument#_searchTerms(prefix, limit, position, callback)
@@ -50,6 +52,8 @@ class HdtDocument : public node::ObjectWrap {
   static NAN_PROPERTY_GETTER(Closed);
 };
 
+// Check if a term is a variable
+bool isVariable(string& term);
 // Converts a JavaScript literal to an HDT literal
 std::string& toHdtLiteral(std::string& literal);
 // Converts an HDT literal to a JavaScript literal

@@ -2,6 +2,7 @@ require('should');
 const { literal, variable, namedNode, quad, defaultGraph } = require('n3').DataFactory;
 
 const hdt = require('../lib/hdt');
+const BF = new (require('@comunica/utils-bindings-factory').BindingsFactory)(require('n3').DataFactory);
 
 describe('hdt', function () {
   describe('The hdt module', function () {
@@ -57,6 +58,10 @@ describe('hdt', function () {
 
       it('should support searchTriples', function () {
         document.features.searchTriples.should.be.true();
+      });
+
+      it('should support searchBindings', function () {
+        document.features.searchBindings.should.be.true();
       });
 
       it('should support countTriples', function () {
@@ -333,7 +338,7 @@ describe('hdt', function () {
       });
     });
 
-    describe('being searched', function () {
+    describe('being searched for triples', function () {
       describe('with a non-existing pattern', function () {
         var triples, totalCount;
         before(function () {
@@ -1200,6 +1205,217 @@ describe('hdt', function () {
       });
     });
 
+    describe('being searched for bindings', function () {
+      describe('with a non-existing pattern', function () {
+        var bindings, totalCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('a'), variable('p'), variable('o')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.be.empty();
+        });
+
+        it('should estimate the total count as 0', function () {
+          totalCount.should.equal(0);
+        });
+      });
+
+      describe('with pattern ?s ?p ?o', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('p'), variable('o')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(134);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/s1'),
+            p: namedNode('http://example.org/p1'),
+            o: namedNode('http://example.org/o001'),
+          }));
+        });
+
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(134);
+        });
+
+        it('should not be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?s ?s', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('s'), variable('s')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(0);
+        });
+
+        it('should estimate the total count as 134', function () {
+          totalCount.should.equal(0);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:s2 ?p ?o', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('http://example.org/s2'), variable('p'), variable('o')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(10);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            p: namedNode('http://example.org/p1'),
+            o: namedNode('http://example.org/o001'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            p: namedNode('http://example.org/p1'),
+            o: namedNode('http://example.org/o002'),
+          }));
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:s2 ?p ?o, offset 2 and limit 1', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('http://example.org/s2'), variable('p'), variable('o'), { offset: 2, limit: 1 }).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(1);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            p: namedNode('http://example.org/p1'),
+            o: namedNode('http://example.org/o003'),
+          }));
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:s2 ?p ?o, offset 200 and limit 1', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('http://example.org/s2'), variable('p'), variable('o'), { offset: 200, limit: 1 }).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(0);
+        });
+
+        it('should estimate the total count as 10', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?p "a"^^http://example.org/literal', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('p'), literal('a', namedNode('http://example.org/literal'))).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(1);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/s4'),
+            p: namedNode('http://example.org/p3'),
+          }));
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:s3 ?p ex:o001 and offset 1', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('http://example.org/s3'), variable('p'), namedNode('http://example.org/o001'), { offset : 1 }).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(0);
+          bindings.should.be.empty();
+        });
+
+        it('should estimate the total count as 1', function () {
+          totalCount.should.equal(10);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(false);
+        });
+      });
+    });
+
     describe('being counted', function () {
       describe('with a non-existing pattern', function () {
         var totalCount, hasExactCount;
@@ -1320,6 +1536,311 @@ describe('hdt', function () {
 
         it('should return 1', function () {
           totalCount.should.equal(1);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+    });
+  });
+
+  describe('An HDT document for an example HDT file with reused terms', function () {
+    var document;
+    before(function () {
+      return hdt.fromFile('./test/test2.hdt').then(hdtDocument => {
+        document = hdtDocument;
+      });
+    });
+    after(function () {
+      return document.close();
+    });
+
+    describe('being searched for bindings', function () {
+      describe('with pattern ?s ?p ?o', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('p'), variable('o')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(27);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 27', function () {
+          totalCount.should.equal(27);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?s ?s', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('s'), variable('s')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(3);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 3', function () {
+          totalCount.should.equal(3);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?s ?s, offset 1, limit 2', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('s'), variable('s'), { offset: 1, limit: 2 }).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(2);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 3', function () {
+          totalCount.should.equal(3);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?s ?o', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('s'), variable('o')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(9);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            o: namedNode('http://example.org/t3'),
+          }));
+          bindingsShouldEqual(bindings[3], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            o: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[4], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            o: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[5], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            o: namedNode('http://example.org/t3'),
+          }));
+          bindingsShouldEqual(bindings[6], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            o: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[7], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            o: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[8], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            o: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 9', function () {
+          totalCount.should.equal(9);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?p ?p', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('p'), variable('p')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(9);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            s: namedNode('http://example.org/t1'),
+            p: namedNode('http://example.org/t3'),
+          }));
+          bindingsShouldEqual(bindings[3], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[4], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[5], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t3'),
+          }));
+          bindingsShouldEqual(bindings[6], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            p: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[7], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            p: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[8], BF.fromRecord({
+            s: namedNode('http://example.org/t3'),
+            p: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 9', function () {
+          totalCount.should.equal(9);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ?s ?p ?p, offset 3, limit 3', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, variable('s'), variable('p'), variable('p'), { offset: 3, limit: 3 }).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(3);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            s: namedNode('http://example.org/t2'),
+            p: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 9', function () {
+          totalCount.should.equal(9);
+        });
+
+        it('should be an exact count', function () {
+          hasExactCount.should.equal(true);
+        });
+      });
+
+      describe('with pattern ex:t2 ?p ?p', function () {
+        var bindings, totalCount, hasExactCount;
+        before(function () {
+          return document.searchBindings(BF, namedNode('http://example.org/t2'), variable('p'), variable('p')).then(result => {
+            bindings = result.bindings;
+            totalCount = result.totalCount;
+            hasExactCount = result.hasExactCount;
+          });
+        });
+
+        it('should return an array with matches', function () {
+          bindings.should.be.an.Array();
+          bindings.should.have.length(3);
+          bindingsShouldEqual(bindings[0], BF.fromRecord({
+            p: namedNode('http://example.org/t1'),
+          }));
+          bindingsShouldEqual(bindings[1], BF.fromRecord({
+            p: namedNode('http://example.org/t2'),
+          }));
+          bindingsShouldEqual(bindings[2], BF.fromRecord({
+            p: namedNode('http://example.org/t3'),
+          }));
+        });
+
+        it('should estimate the total count as 3', function () {
+          totalCount.should.equal(3);
         });
 
         it('should be an exact count', function () {
@@ -1662,3 +2183,7 @@ describe('hdt', function () {
     });
   });
 });
+
+function bindingsShouldEqual(left, right) {
+  return left.equals(right).should.be.true(`Expected ${left.toString()} to equal ${right.toString()}`);
+}
