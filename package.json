@@ -15,6 +15,12 @@
   "main": "./lib/hdt",
   "bin": "./bin/hdt",
   "types": "./lib/hdt.d.ts",
+  "files": [
+    "bin",
+    "binding.gyp",
+    "deps",
+    "lib"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/RubenVerborgh/HDT-Node.git"
