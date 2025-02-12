@@ -29,8 +29,16 @@ export interface SearchResult {
   hasExactCount: boolean;
 }
 
+export interface BindingsResult {
+  bindings: RDF.Bindings[];
+  totalCount: number;
+  hasExactCount: boolean;
+}
+
 export interface Document {
   searchTriples(sub?: RDF.Term, pred?: RDF.Term, obj?: RDF.Term, opts?: SearchTriplesOpts): Promise<SearchResult>;
+
+  searchBindings(bf: RDF.BindingsFactory, sub: RDF.Term, pred: RDF.Term, obj: RDF.Term, opts?: SearchTriplesOpts): Promise<BindingsResult>;
 
   countTriples(sub?: RDF.Term, pred?: RDF.Term, obj?: RDF.Term): Promise<SearchResult>;
 
