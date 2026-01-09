@@ -63,9 +63,9 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader", ChangeHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close", Close);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
-                     Nan::New("_features").ToLocalChecked(), Features);
+                     Nan::New("_features").ToLocalChecked(), (Nan::GetterCallback) Features);
     Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
-                     Nan::New("closed").ToLocalChecked(), Closed);
+                     Nan::New("closed").ToLocalChecked(), (Nan::GetterCallback) Closed);
     // Set constructor
     constructor.Reset(Nan::GetFunction(constructorTemplate).ToLocalChecked());
   }

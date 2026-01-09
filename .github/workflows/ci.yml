@@ -13,11 +13,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
           - ubuntu-22.04
           - ubuntu-24.04
           - ubuntu-latest
-          - macos-13
           - macos-14
           - macos-15
           - macos-latest
@@ -25,6 +23,7 @@ jobs:
           - 18.x
           - 20.x
           - 22.x
+          - 24.x
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -57,7 +56,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 24.x
       - name: Check out repository
         uses: actions/checkout@v3
         with:

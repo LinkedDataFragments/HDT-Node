@@ -39,9 +39,9 @@
   },
   "dependencies": {
     "minimist": "^1.1.0",
-    "n3": "^1.17.3",
-    "nan": "^2.19.0",
-    "rdf-string": "^1.6.3"
+    "n3": "^2.0.1",
+    "nan": "^2.24.0",
+    "rdf-string": "^2.0.1"
   },
   "devDependencies": {
     "eslint": "^5.3.0",
@@ -49,7 +49,7 @@
     "precommit-hook": "^3.0.0",
     "replace-in-file": "^8.3.0",
     "should": "^13.1.0",
-    "@comunica/utils-bindings-factory": "^4.0.2"
+    "@comunica/utils-bindings-factory": "^5.0.0"
   },
   "pre-commit": [
     "lint",
