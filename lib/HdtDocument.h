@@ -45,11 +45,11 @@ class HdtDocument : public node::ObjectWrap {
   // HdtDocument#_changeHeader(headerString, outputFile, callback, self)
   static NAN_METHOD(ChangeHeader);
   // HdtDocument#_features
-  static NAN_PROPERTY_GETTER(Features);
+  static NAN_METHOD(GetFeatures);
   // HdtDocument#close([callback], [self])
   static NAN_METHOD(Close);
   // HdtDocument#closed
-  static NAN_PROPERTY_GETTER(Closed);
+  static NAN_METHOD(GetClosed);
 };
 
 // Check if a term is a variable

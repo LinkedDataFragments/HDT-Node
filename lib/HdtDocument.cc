@@ -62,10 +62,8 @@ const Nan::Persistent<Function>& HdtDocument::GetConstructor() {
     Nan::SetPrototypeMethod(constructorTemplate, "_readHeader", ReadHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_changeHeader", ChangeHeader);
     Nan::SetPrototypeMethod(constructorTemplate, "_close", Close);
-    Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
-                     Nan::New("_features").ToLocalChecked(), (Nan::GetterCallback) Features);
-    Nan::SetAccessor(constructorTemplate->PrototypeTemplate(),
-                     Nan::New("closed").ToLocalChecked(), (Nan::GetterCallback) Closed);
+    constructorTemplate->PrototypeTemplate()->SetAccessorProperty(Nan::New("_features").ToLocalChecked(), Nan::New<v8::FunctionTemplate>(GetFeatures), v8::Local<v8::FunctionTemplate>());
+    constructorTemplate->PrototypeTemplate()->SetAccessorProperty(Nan::New("closed").ToLocalChecked(), Nan::New<v8::FunctionTemplate>(GetClosed), v8::Local<v8::FunctionTemplate>());
     // Set constructor
     constructor.Reset(Nan::GetFunction(constructorTemplate).ToLocalChecked());
   }
@@ -701,7 +699,7 @@ NAN_METHOD(HdtDocument::FetchDistinctTerms) {
 
 
 // Gets a bitvector indicating the supported features.
-NAN_PROPERTY_GETTER(HdtDocument::Features) {
+NAN_METHOD(HdtDocument::GetFeatures) {
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
   info.GetReturnValue().Set(Nan::New<Integer>(hdtDocument->features));
 }
@@ -732,7 +730,7 @@ NAN_METHOD(HdtDocument::Close) {
 
 
 // Gets a boolean indicating whether the document is closed.
-NAN_PROPERTY_GETTER(HdtDocument::Closed) {
+NAN_METHOD(HdtDocument::GetClosed) {
   HdtDocument* hdtDocument = Unwrap<HdtDocument>(info.This());
   info.GetReturnValue().Set(Nan::New<Boolean>(!hdtDocument->hdt));
 }
