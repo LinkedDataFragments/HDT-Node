@@ -40,16 +40,16 @@
   "dependencies": {
     "minimist": "^1.1.0",
     "n3": "^2.0.1",
-    "nan": "^2.24.0",
+    "nan": "^2.27.0",
     "rdf-string": "^2.0.1"
   },
   "devDependencies": {
+    "@comunica/utils-bindings-factory": "^5.0.0",
     "eslint": "^5.3.0",
     "mocha": "^6.2.2",
     "precommit-hook": "^3.0.0",
     "replace-in-file": "^8.3.0",
-    "should": "^13.1.0",
-    "@comunica/utils-bindings-factory": "^5.0.0"
+    "should": "^13.1.0"
   },
   "pre-commit": [
     "lint",
